@@ -1,13 +1,14 @@
 import { Option } from 'effect'
 import { describe, expect, test } from 'vitest'
 
-import { formatters, grids, parseCoordinate, parsers } from './registry'
 import { toGars } from './gars/gars'
 import { toMgrs } from './mgrs/mgrs'
+import { formatters, grids, parseCoordinate, parsers } from './registry'
+import type { SystemOptions } from './types'
 import { toUtm } from './utm/utm'
 
 const london = { lat: 51.5073509, lon: -0.1277583 }
-const options = { mgrsPrecision: 5, garsPrecision: 5 } as const
+const options: SystemOptions = { mgrsPrecision: 5, garsPrecision: 5 }
 
 describe('registry', () => {
   test('ids are unique', () => {
@@ -26,8 +27,12 @@ describe('registry', () => {
 
   test('every formatter handles the poles', () => {
     for (const formatter of formatters) {
-      expect(() => formatter.format({ lat: 89.9, lon: 10 }, options)).not.toThrow()
-      expect(() => formatter.format({ lat: -89.9, lon: 10 }, options)).not.toThrow()
+      expect(() =>
+        formatter.format({ lat: 89.9, lon: 10 }, options),
+      ).not.toThrow()
+      expect(() =>
+        formatter.format({ lat: -89.9, lon: 10 }, options),
+      ).not.toThrow()
     }
   })
 
@@ -48,7 +53,11 @@ describe('parseCoordinate', () => {
 
   test('routes each format to its parser', () => {
     const utm = toUtm(london)
-    near(`${utm.zone}${utm.band} ${utm.easting.toFixed(2)} ${utm.northing.toFixed(2)}`, 'UTM', 1e-7)
+    near(
+      `${utm.zone}${utm.band} ${utm.easting.toFixed(2)} ${utm.northing.toFixed(2)}`,
+      'UTM',
+      1e-7,
+    )
     near(toMgrs(london, 5), 'MGRS', 1e-4)
     near(toMgrs(london, 5, true), 'MGRS', 1e-4)
     near(toGars(london), 'GARS', 0.05)
@@ -59,7 +68,9 @@ describe('parseCoordinate', () => {
   })
 
   test('reads UPS', () => {
-    expect(Option.getOrThrow(parseCoordinate('UPS N 2000000 2000000')).point.lat).toBeCloseTo(90, 6)
+    expect(
+      Option.getOrThrow(parseCoordinate('UPS N 2000000 2000000')).point.lat,
+    ).toBeCloseTo(90, 6)
   })
 
   test('returns none for unrecognised text', () => {

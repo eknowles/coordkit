@@ -6,8 +6,8 @@ import type { Option } from 'effect'
 
 import type { LatLon } from '../geo/ellipsoid'
 import type { Box, GridGeometry, Position, RGBA } from '../geo/geometry'
-import type { GarsPrecision } from './gars/gars'
-import type { MgrsPrecision } from './mgrs/mgrs'
+import type { GarsPrecision } from './gars/precision'
+import type { MgrsPrecision } from './mgrs/precision'
 
 export type SystemOptions = Readonly<{
   mgrsPrecision: MgrsPrecision
@@ -24,17 +24,15 @@ export interface Formatter {
   readonly id: string
   readonly label: string
   /** The grid that draws this system on the map; its colour marks the readout column. */
-  readonly gridId?: string
+  readonly maybeGridId: Option.Option<string>
   readonly format: (point: LatLon, options: SystemOptions) => Reading
 }
-
-export type Bounds = readonly [west: number, south: number, east: number, north: number]
 
 export interface ParseResult {
   readonly kind: string
   readonly point: LatLon
   /** The area the reference covers, when it names a cell rather than a point. */
-  readonly bounds?: Bounds
+  readonly maybeBounds: Option.Option<Box>
 }
 
 export interface Parser {
@@ -47,6 +45,11 @@ export type GridColors = Readonly<{ onDark: RGBA; onLight: RGBA }>
 
 export type MapTone = keyof GridColors
 
+export type CueOutline = (
+  point: LatLon,
+  options: SystemOptions,
+) => Option.Option<ReadonlyArray<Position>>
+
 export interface Grid {
   readonly id: string
   /** Short name for a toolbar toggle. */
@@ -54,8 +57,8 @@ export interface Grid {
   /** What the toggle shows, including when the grid appears. */
   readonly description: string
   readonly colors: GridColors
-  readonly enabledByDefault: boolean
+  readonly isEnabledByDefault: boolean
   readonly build: (view: Box, zoom: number) => GridGeometry
   /** Outline of the cell or square that contains a point, drawn around the cue. */
-  readonly cueOutline?: (point: LatLon, options: SystemOptions) => Option.Option<ReadonlyArray<Position>>
+  readonly maybeCueOutline: Option.Option<CueOutline>
 }

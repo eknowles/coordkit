@@ -1,19 +1,12 @@
-import clsx from 'clsx'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import { Message } from '../app/message'
-import type { Model } from '../app/model'
-import { githubIconView, settingsIconView } from '../ui/icons'
-import { gridTogglesView, toggleView } from './grids'
-import { mapSettingsView } from './options'
-import { searchView } from './search'
+import * as GoTo from '../goTo'
+import { Message } from '../message'
+import type { Model } from '../model'
+import * as Settings from '../settings'
+import * as Icon from '../ui/icon'
 
 export const REPOSITORY_URL = 'https://github.com/eknowles/coordkit'
-const SETTINGS_POPOVER_ID = 'map-settings'
-
-const iconButtonClass = 'shrink-0 rounded-md p-1.5 text-muted hover:bg-ink/10 hover:text-ink xl:order-last'
-
-const dividerView = (h: HtmlBuilder<Message>): Html => h.span([h.Class('h-5 w-px shrink-0 bg-line'), h.AriaHidden(true)])
 
 const githubLinkView = (h: HtmlBuilder<Message>): Html =>
   h.a(
@@ -21,56 +14,27 @@ const githubLinkView = (h: HtmlBuilder<Message>): Html =>
       h.Href(REPOSITORY_URL),
       h.Target('_blank'),
       h.Rel('noopener noreferrer'),
-      h.AriaLabel('CoordKit source on GitHub'),
+      h.AriaLabel('CoordKit source on GitHub (opens in a new tab)'),
       h.Title('Source on GitHub'),
-      h.Class(iconButtonClass),
+      h.Class(
+        'shrink-0 rounded-md p-1.5 text-muted outline-hidden hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-focus xl:order-last',
+      ),
     ],
-    [githubIconView(h)],
+    [Icon.github(h)],
   )
 
-/** The browser's own popover: it opens from the button, and closes on Escape or a click outside. */
-const settingsButtonView = (h: HtmlBuilder<Message>): Html =>
-  h.button(
-    [
-      h.Type('button'),
-      h.Popovertarget(SETTINGS_POPOVER_ID),
-      h.AriaLabel('Map settings'),
-      h.Title('Map settings'),
-      h.Class(`${iconButtonClass} ml-auto`),
-    ],
-    [settingsIconView(h)],
-  )
+const toGoToMessage = (message: GoTo.Message): Message =>
+  Message.GotGoToMessage({ message })
 
-const settingsPopoverView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  h.div(
-    [
-      h.Id(SETTINGS_POPOVER_ID),
-      h.Popover('auto'),
-      h.AriaLabel('Map settings'),
-      h.Class('ck-popover w-64 rounded-lg border border-line bg-panel p-3 text-ink shadow-lg shadow-black/40'),
-    ],
-    [mapSettingsView(model.settings, h)],
-  )
-
-const ringsToggleView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  toggleView(
-    'Rings',
-    'Range rings around the cue (spacing and unit in Map settings)',
-    model.settings.showRings,
-    Message.ToggledRings(),
-    h.span([
-      h.Class(clsx('inline-block h-2 w-2 shrink-0 rounded-full border-2 border-cue', !model.settings.showRings && 'opacity-30')),
-      h.AriaHidden(true),
-    ]),
-    h,
-  )
+const toSettingsMessage = (message: Settings.Message): Message =>
+  Message.GotSettingsMessage({ message })
 
 /**
  * Wide screens: one row. Narrower screens: brand, search and the icon buttons on top, then the
- * grid toggles in a strip that scrolls sideways. The two wrappers dissolve (`xl:contents`) on
+ * overlay toggles in a strip that scrolls sideways. The two wrappers dissolve (`xl:contents`) on
  * wide screens so every control joins the single row.
  */
-export const toolbarView = (model: Model, h: HtmlBuilder<Message>): Html =>
+export const view = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.header(
     [
       h.Class(
@@ -81,9 +45,28 @@ export const toolbarView = (model: Model, h: HtmlBuilder<Message>): Html =>
       h.div(
         [h.Class('flex items-center gap-2 xl:contents')],
         [
-          h.h1([h.Class('shrink-0 text-sm font-semibold')], ['CoordKit']),
-          searchView(model, h),
-          settingsButtonView(h),
+          h.h1(
+            [h.Class('shrink-0'), h.Title('CoordKit')],
+            [Icon.logo(h), h.span([h.Class('sr-only')], ['CoordKit'])],
+          ),
+          h.submodel({
+            slotId: 'go-to',
+            model: model.goTo,
+            view: GoTo.view,
+            toParentMessage: toGoToMessage,
+          }),
+          h.submodel({
+            slotId: 'locate',
+            model: model.goTo,
+            view: GoTo.locateButtonView,
+            toParentMessage: toGoToMessage,
+          }),
+          h.submodel({
+            slotId: 'settings-menu',
+            model: model.settings,
+            view: Settings.menuView,
+            toParentMessage: toSettingsMessage,
+          }),
           githubLinkView(h),
         ],
       ),
@@ -93,8 +76,14 @@ export const toolbarView = (model: Model, h: HtmlBuilder<Message>): Html =>
             '-mx-3 flex items-center gap-3 overflow-x-auto px-3 [scrollbar-width:none] xl:contents [&::-webkit-scrollbar]:hidden',
           ),
         ],
-        [gridTogglesView(model.settings, h), dividerView(h), ringsToggleView(model, h)],
+        [
+          h.submodel({
+            slotId: 'overlay-toggles',
+            model: model.settings,
+            view: Settings.togglesView,
+            toParentMessage: toSettingsMessage,
+          }),
+        ],
       ),
-      settingsPopoverView(model, h),
     ],
   )

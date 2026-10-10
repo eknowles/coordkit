@@ -1,9 +1,16 @@
 import { describe, expect, test } from 'vitest'
 
 import { destination } from '../geo/geodesic'
-import { RING_COUNT, autoStep, buildRings, ringLabelText, ringStep } from './rings'
+import type { Box } from '../geo/geometry'
+import {
+  RING_COUNT,
+  autoStep,
+  buildRings,
+  ringLabelText,
+  ringStep,
+} from './rings'
 
-const viewOf = (south: number, north: number) => ({ bounds: { west: -1, south, east: 1, north }, zoom: 8 })
+const viewOf = (south: number, north: number): Box => [-1, south, 1, north]
 
 describe('ringStep', () => {
   test('a fixed spacing is used as given and Auto follows the view', () => {
@@ -25,9 +32,19 @@ describe('buildRings', () => {
   test('draws evenly spaced geodesic rings labelled at their north point', () => {
     const rings = buildRings(cue, 1, 'NauticalMiles')
     expect(rings).toHaveLength(RING_COUNT)
-    expect(rings.map(ring => ring.label.text)).toEqual(['1 NM', '2 NM', '3 NM', '4 NM', '5 NM', '6 NM'])
+    expect(rings.map(ring => ring.label.text)).toEqual([
+      '1 NM',
+      '2 NM',
+      '3 NM',
+      '4 NM',
+      '5 NM',
+      '6 NM',
+    ])
     const third = rings[2]!
-    expect(third.label.position[1]).toBeCloseTo(destination(cue, 0, 3 * 1852).lat, 9)
+    expect(third.label.position[1]).toBeCloseTo(
+      destination(cue, 0, 3 * 1852).lat,
+      9,
+    )
   })
 
   test('each ring is closed and every vertex sits at the ring radius', () => {

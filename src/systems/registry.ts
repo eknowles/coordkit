@@ -2,54 +2,71 @@
  * The coordinate systems the app knows about. To add a system, give it a folder that exports
  * a Formatter, Parser or Grid, then list it here. Nothing else in the app names a system.
  */
-import { Array, Option } from 'effect'
+import { Array, Option, Record, pipe } from 'effect'
 
-import { ddFormatter, ddmFormatter, dmsFormatter, latLonParser } from './angles'
-import { ecefFormatter } from './ecef'
-import { garsFormatter, garsGridDefinition, garsParser } from './gars'
-import { geohashFormatter, geohashParser } from './geohash'
-import { graticuleGridDefinition } from './graticule'
-import { maidenheadFormatter, maidenheadParser } from './maidenhead'
-import { mgrsFormatter, mgrsGridDefinition, mgrsParser } from './mgrs'
+import * as Angles from './angles'
+import * as Ecef from './ecef'
+import * as Gars from './gars'
+import * as Geohash from './geohash'
+import * as Graticule from './graticule'
+import * as Maidenhead from './maidenhead'
+import * as Mgrs from './mgrs'
 import type { Formatter, Grid, ParseResult, Parser } from './types'
-import { gzdGridDefinition, upsParser, utmFormatter, utmParser } from './utm'
-import { webMercatorFormatter } from './web-mercator'
+import * as Utm from './utm'
+import * as WebMercator from './webMercator'
 
 /** Readout columns, left to right. */
 export const formatters: ReadonlyArray<Formatter> = [
-  ddFormatter,
-  dmsFormatter,
-  ddmFormatter,
-  utmFormatter,
-  mgrsFormatter,
-  garsFormatter,
-  geohashFormatter,
-  maidenheadFormatter,
-  webMercatorFormatter,
-  ecefFormatter,
+  Angles.ddFormatter,
+  Angles.dmsFormatter,
+  Angles.ddmFormatter,
+  Utm.formatter,
+  Mgrs.formatter,
+  Gars.formatter,
+  Geohash.formatter,
+  Maidenhead.formatter,
+  WebMercator.formatter,
+  Ecef.formatter,
 ]
 
 /** Tried in order; the first match wins. Geohash is last because it accepts the most text. */
 export const parsers: ReadonlyArray<Parser> = [
-  utmParser,
-  upsParser,
-  garsParser,
-  mgrsParser,
-  maidenheadParser,
-  latLonParser,
-  geohashParser,
+  Utm.utmParser,
+  Utm.upsParser,
+  Gars.parser,
+  Mgrs.parser,
+  Maidenhead.parser,
+  Angles.parser,
+  Geohash.parser,
 ]
 
 /** Drawn in order, so later grids sit on top; their labels win collisions. */
-export const grids: ReadonlyArray<Grid> = [graticuleGridDefinition, garsGridDefinition, gzdGridDefinition, mgrsGridDefinition]
+export const grids: ReadonlyArray<Grid> = [
+  Graticule.grid,
+  Gars.grid,
+  Utm.grid,
+  Mgrs.grid,
+]
 
 export const parseCoordinate = (text: string): Option.Option<ParseResult> =>
   Array.findFirst(parsers, parser => parser.parse(text))
 
-export const isGridEnabled = (enabled: Readonly<Record<string, boolean>>, grid: Grid): boolean =>
-  enabled[grid.id] ?? grid.enabledByDefault
+/** Whether a grid is on; a grid the toggles do not list (newer than saved settings) uses its default. */
+export const isGridEnabled = (
+  toggles: Readonly<Record<string, boolean>>,
+  grid: Grid,
+): boolean =>
+  Option.getOrElse(Record.get(toggles, grid.id), () => grid.isEnabledByDefault)
 
 export const defaultGridToggles = (): Record<string, boolean> =>
-  Object.fromEntries(Array.map(grids, grid => [grid.id, grid.enabledByDefault]))
+  pipe(
+    grids,
+    Array.map((grid): readonly [string, boolean] => [
+      grid.id,
+      grid.isEnabledByDefault,
+    ]),
+    Record.fromEntries,
+  )
 
-export const findGrid = (gridId: string): Option.Option<Grid> => Array.findFirst(grids, grid => grid.id === gridId)
+export const findGrid = (gridId: string): Option.Option<Grid> =>
+  Array.findFirst(grids, ({ id }) => id === gridId)

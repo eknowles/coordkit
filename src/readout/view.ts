@@ -1,14 +1,10 @@
-/**
- * The readout is a table of positions (rows.ts) by coordinate systems (columns.ts).
- * Wide screens put systems across the top; compact screens turn it so systems run down.
- */
 import clsx from 'clsx'
-import { Array } from 'effect'
+import { Array, Option } from 'effect'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import type { Message } from '../app/message'
-import type { Model } from '../app/model'
-import { readingCellView } from './cell'
+import type { Message } from '../message'
+import type { Model } from '../model'
+import * as Cell from './cell'
 import { type ReadoutColumn, columns } from './columns'
 import { positionLabelView, systemLabelView } from './header'
 import { type ReadoutRow, availableRows } from './rows'
@@ -17,36 +13,67 @@ const CAPTION = 'The cursor and cue positions in each coordinate system'
 const stickyLeft = 'sticky left-0 z-10 bg-panel'
 const headingText = 'font-sans text-[11px] font-medium text-muted'
 
-export const readoutBarView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  model.layout === 'Wide' ? wideTableView(model, h) : compactTableView(model, h)
-
-const tableView = (head: Html, body: ReadonlyArray<Html>, h: HtmlBuilder<Message>): Html =>
+const readoutTableView = (
+  head: Html,
+  body: ReadonlyArray<Html>,
+  h: HtmlBuilder<Message>,
+): Html =>
   h.table(
     [h.Class('w-full border-separate border-spacing-0 font-mono text-xs')],
-    [h.caption([h.Class('sr-only')], [CAPTION]), h.thead([], [head]), h.tbody([], [...body])],
+    [
+      h.caption([h.Class('sr-only')], [CAPTION]),
+      h.thead([], [head]),
+      h.tbody([], [...body]),
+    ],
   )
 
-const cellView = (row: ReadoutRow, column: ReadoutColumn, model: Model, classes: string, h: HtmlBuilder<Message>): Html =>
-  h.keyed('td')(`${row.target}-${column.formatter.id}`, [h.Class(clsx('p-0', classes))], [
-    readingCellView(row, column, model, h),
-  ])
+const cellView = (
+  row: ReadoutRow,
+  column: ReadoutColumn,
+  model: Model,
+  classes: string,
+  h: HtmlBuilder<Message>,
+): Html =>
+  h.keyed('td')(
+    `${row.id}-${column.formatter.id}`,
+    [h.Class(clsx('p-0', classes))],
+    [Cell.view(row, column, model, h)],
+  )
 
 // WIDE: positions down, systems across
 
-const wideTableView = (model: Model, h: HtmlBuilder<Message>): Html => {
+/**
+ * The readout shows positions (rows.ts) in each coordinate system (columns.ts). Wide screens
+ * get this table under the map.
+ */
+export const tableView = (model: Model, h: HtmlBuilder<Message>): Html => {
   const rows = availableRows(model)
-  return h.footer(
-    [h.Class('shrink-0 overflow-x-auto border-t border-line bg-panel')],
+  return h.section(
     [
-      tableView(
+      h.AriaLabel('Coordinate readout'),
+      h.Class('shrink-0 overflow-x-auto border-t border-line bg-panel'),
+    ],
+    [
+      readoutTableView(
         h.tr(
           [],
           [
-            h.th([h.Scope('col'), h.Class(clsx(stickyLeft, 'w-28'))], [h.span([h.Class('sr-only')], ['Position'])]),
+            h.th(
+              [h.Scope('col'), h.Class(clsx(stickyLeft, 'w-28'))],
+              [h.span([h.Class('sr-only')], ['Position'])],
+            ),
             ...Array.map(columns, column =>
               h.keyed('th')(
                 column.formatter.id,
-                [h.Scope('col'), h.Class(clsx('min-w-36 border-l border-line px-3 pb-1 pt-2 text-left', headingText))],
+                [
+                  h.Scope('col'),
+                  h.Class(
+                    clsx(
+                      'min-w-36 border-l border-line px-3 pb-1 pt-2 text-left',
+                      headingText,
+                    ),
+                  ),
+                ],
                 [systemLabelView(column, model, h)],
               ),
             ),
@@ -55,14 +82,31 @@ const wideTableView = (model: Model, h: HtmlBuilder<Message>): Html => {
         Array.map(rows, (row, index) => {
           const divider = index > 0 && 'border-t border-line-soft'
           return h.keyed('tr')(
-            row.target,
+            row.id,
             [],
             [
               h.th(
-                [h.Scope('row'), h.Class(clsx(stickyLeft, divider, 'px-3 text-left font-sans text-xs font-medium'))],
+                [
+                  h.Scope('row'),
+                  h.Class(
+                    clsx(
+                      stickyLeft,
+                      divider,
+                      'px-3 text-left font-sans text-xs font-medium',
+                    ),
+                  ),
+                ],
                 [positionLabelView(row, model, h)],
               ),
-              ...Array.map(columns, column => cellView(row, column, model, clsx('border-l border-line', divider), h)),
+              ...Array.map(columns, column =>
+                cellView(
+                  row,
+                  column,
+                  model,
+                  clsx('border-l border-line', divider),
+                  h,
+                ),
+              ),
             ],
           )
         }),
@@ -72,41 +116,72 @@ const wideTableView = (model: Model, h: HtmlBuilder<Message>): Html => {
   )
 }
 
-// COMPACT: systems down, positions across
+// COMPACT: a sheet of system cards that scrolls sideways
 
-const compactTableView = (model: Model, h: HtmlBuilder<Message>): Html => {
-  const rows = availableRows(model)
-  return h.footer(
-    [h.Class('max-h-[42dvh] shrink-0 overflow-y-auto border-t border-line bg-panel pb-[env(safe-area-inset-bottom)]')],
+const cardView = (
+  column: ReadoutColumn,
+  rows: ReadonlyArray<ReadoutRow>,
+  model: Model,
+  h: HtmlBuilder<Message>,
+): Html =>
+  h.keyed('li')(
+    column.formatter.id,
     [
-      tableView(
-        h.tr(
-          [h.Class('sticky top-0 z-20 bg-panel')],
-          [
-            h.th([h.Scope('col'), h.Class(clsx('px-3 py-2 text-left', headingText))], ['System']),
-            ...Array.map(rows, row =>
-              h.keyed('th')(
-                row.target,
-                [h.Scope('col'), h.Class('border-l border-line px-3 py-2 text-left font-sans text-xs font-medium')],
-                [positionLabelView(row, model, h)],
-              ),
-            ),
-          ],
+      h.Class(
+        'w-44 shrink-0 snap-start overflow-hidden rounded-lg border border-line bg-surface',
+      ),
+    ],
+    [
+      h.div(
+        [h.Class(clsx('px-3 pb-0.5 pt-2', headingText))],
+        [systemLabelView(column, model, h)],
+      ),
+      ...Array.map(rows, row =>
+        h.keyed('div')(
+          row.id,
+          [h.Class('pb-1 font-mono text-xs')],
+          [Cell.view(row, column, model, h)],
         ),
-        Array.map(columns, column =>
-          h.keyed('tr')(
-            column.formatter.id,
-            [],
-            [
-              h.th(
-                [h.Scope('row'), h.Class(clsx('border-t border-line-soft px-3 text-left align-middle', headingText))],
-                [systemLabelView(column, model, h)],
-              ),
-              ...Array.map(rows, row => cellView(row, column, model, 'border-l border-t border-line border-t-line-soft', h)),
-            ],
+      ),
+    ],
+  )
+
+/** Compact screens get a sheet over the map, one card per system, which slides up while there is a position to show. */
+export const sheetView = (model: Model, h: HtmlBuilder<Message>): Html => {
+  const rows = availableRows(model)
+  const isOpen = Array.some(rows, row => Option.isSome(row.point(model)))
+  return h.section(
+    [
+      h.AriaLabel('Coordinate readout'),
+      h.AriaHidden(!isOpen),
+      ...(isOpen ? [] : [h.Attribute('inert', '')]),
+      h.Class(
+        clsx(
+          'absolute inset-x-0 bottom-0 z-10 border-t border-line bg-panel/95 pb-[env(safe-area-inset-bottom)]',
+          'shadow-[0_-8px_24px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out motion-reduce:transition-none',
+          isOpen ? 'translate-y-0' : 'pointer-events-none translate-y-full',
+        ),
+      ),
+    ],
+    [
+      h.div(
+        [h.Class('flex items-center gap-4 px-3 pb-1 pt-2 text-xs font-medium')],
+        Array.map(rows, row =>
+          h.keyed('div')(
+            row.id,
+            [h.Class('flex flex-1 items-center')],
+            [positionLabelView(row, model, h)],
           ),
         ),
-        h,
+      ),
+      h.ul(
+        [
+          h.AriaLabel('Coordinate systems'),
+          h.Class(
+            'flex snap-x snap-mandatory scroll-px-3 gap-2 overflow-x-auto px-3 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          ),
+        ],
+        Array.map(columns, column => cardView(column, rows, model, h)),
       ),
     ],
   )

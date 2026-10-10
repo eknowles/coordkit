@@ -27,6 +27,8 @@ describe('GARS', () => {
 describe('GARS grid', () => {
   test('labels cells at the zoom-appropriate precision', () => {
     expect(garsGrid([0, 0, 1, 1], 6).labels.map(l => l.text)).toContain('361HN')
-    expect(garsGrid([0, 0, 0.5, 0.5], 8).labels.map(l => l.text)).toContain('361HN3')
+    expect(garsGrid([0, 0, 0.5, 0.5], 8).labels.map(l => l.text)).toContain(
+      '361HN3',
+    )
   })
 })

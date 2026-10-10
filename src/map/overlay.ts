@@ -1,30 +1,37 @@
-/** Turn the enabled grids into deck.gl path layers and MapLibre label features. */
-import type { Layer } from '@deck.gl/core'
-import { PathLayer } from '@deck.gl/layers'
 import { Array, Option } from 'effect'
 
-import type { Basemap, MapView, RingSpacing, RingUnit } from '../app/domain'
+import type { Layer } from '@deck.gl/core'
+import { PathLayer } from '@deck.gl/layers'
+
+import type { GridToggles, MapStyle, RangeRings } from '../domain'
 import type { LatLon } from '../geo/ellipsoid'
-import type { Box, GridGeometry, GridLabel, GridPath, RGBA } from '../geo/geometry'
+import type {
+  Box,
+  GridGeometry,
+  GridLabel,
+  GridPath,
+  RGBA,
+} from '../geo/geometry'
 import { grids, isGridEnabled } from '../systems/registry'
 import type { Grid, MapTone, SystemOptions } from '../systems/types'
 import { basemapTone } from './basemaps'
-import { CUE_COLOR } from './cue'
-import { cueLayers } from './cue'
+import { CUE_COLOR, cueLayers } from './cue'
 import { labelHalo } from './labels'
 import { onTop } from './layerDefaults'
 import { buildRings, ringLayer, ringStep } from './rings'
 
 export type OverlayInput = Readonly<{
-  gridToggles: Readonly<Record<string, boolean>>
-  showLabels: boolean
-  view: MapView
+  gridToggles: GridToggles.GridToggles
+  isGridLabelsVisible: boolean
+  /** What the map shows now, as [west, south, east, north]. */
+  bounds: Box
+  zoom: number
   maybeCue: Option.Option<LatLon>
   options: SystemOptions
-  showRings: boolean
-  ringSpacing: RingSpacing
-  ringUnit: RingUnit
-  basemap: Basemap
+  isRangeRingsVisible: boolean
+  ringSpacing: RangeRings.RingSpacing
+  ringUnit: RangeRings.RingUnit
+  basemap: MapStyle.Basemap
 }>
 
 export type OverlayFrame = Readonly<{
@@ -35,13 +42,14 @@ export type OverlayFrame = Readonly<{
 /** Below this zoom the whole globe can be in view, so grids cover every longitude. */
 const WHOLE_WORLD_ZOOM = 2.5
 
-const viewBox = ({ bounds, zoom }: MapView): Box => {
-  const isWholeWorld = zoom < WHOLE_WORLD_ZOOM || bounds.east - bounds.west >= 360
+/** Clip the view to the world, and use every longitude when the whole globe can show. */
+export const gridBox = ([west, south, east, north]: Box, zoom: number): Box => {
+  const isWholeWorld = zoom < WHOLE_WORLD_ZOOM || east - west >= 360
   return [
-    isWholeWorld ? -180 : Math.max(-180, bounds.west),
-    Math.max(-90, bounds.south),
-    isWholeWorld ? 180 : Math.min(180, bounds.east),
-    Math.min(90, bounds.north),
+    isWholeWorld ? -180 : Math.max(-180, west),
+    Math.max(-90, south),
+    isWholeWorld ? 180 : Math.min(180, east),
+    Math.min(90, north),
   ]
 }
 
@@ -60,36 +68,62 @@ const pathLayer = ({ grid, geometry }: BuiltGrid, tone: MapTone): Layer =>
     widthMinPixels: 0.5,
   })
 
-const labelFeature = (label: GridLabel, rank: number, color: RGBA, tone: MapTone): GeoJSON.Feature => ({
+const labelFeature = (
+  label: GridLabel,
+  rank: number,
+  color: RGBA,
+  tone: MapTone,
+): GeoJSON.Feature => ({
   type: 'Feature',
   geometry: { type: 'Point', coordinates: label.position },
-  properties: { text: label.text, size: label.size, rank, color: `rgb(${color.slice(0, 3).join(',')})`, halo: labelHalo[tone] },
+  properties: {
+    text: label.text,
+    size: label.size,
+    rank,
+    color: `rgb(${color.slice(0, 3).join(',')})`,
+    halo: labelHalo[tone],
+  },
 })
 
 /** Grids later in the registry draw on top, so their labels get the lower sort key and win collisions. */
-const gridLabelFeatures = (built: ReadonlyArray<BuiltGrid>, tone: MapTone): Array<GeoJSON.Feature> =>
+const gridLabelFeatures = (
+  built: ReadonlyArray<BuiltGrid>,
+  tone: MapTone,
+): Array<GeoJSON.Feature> =>
   Array.flatMap(built, ({ grid, geometry }, index) =>
-    Array.map(geometry.labels, label => labelFeature(label, built.length - index, grid.colors[tone], tone)),
+    Array.map(geometry.labels, label =>
+      labelFeature(label, built.length - index, grid.colors[tone], tone),
+    ),
   )
 
 /** Range rings belong to the cue, so they show with grid labels off and their labels outrank grid labels. */
 const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
   Option.match(
-    Option.filter(input.maybeCue, () => input.showRings),
+    Option.filter(input.maybeCue, () => input.isRangeRingsVisible),
     {
       onNone: () => ({ layers: [], labels: [] }),
       onSome: cue => {
-        const rings = buildRings(cue, ringStep(input.ringSpacing, input.view, input.ringUnit), input.ringUnit)
-        return { layers: [ringLayer(rings)], labels: Array.map(rings, ring => labelFeature(ring.label, 0, CUE_COLOR, tone)) }
+        const rings = buildRings(
+          cue,
+          ringStep(input.ringSpacing, input.bounds, input.ringUnit),
+          input.ringUnit,
+        )
+        return {
+          layers: [ringLayer(rings)],
+          labels: Array.map(rings, ring =>
+            labelFeature(ring.label, 0, CUE_COLOR, tone),
+          ),
+        }
       },
     },
   )
 
+/** Turn the enabled grids, the cue and its rings into deck.gl layers and MapLibre label features. */
 export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
-  const box = viewBox(input.view)
+  const box = gridBox(input.bounds, input.zoom)
   const built = Array.map(
     Array.filter(grids, grid => isGridEnabled(input.gridToggles, grid)),
-    grid => ({ grid, geometry: grid.build(box, input.view.zoom) }),
+    grid => ({ grid, geometry: grid.build(box, input.zoom) }),
   )
   const tone = basemapTone[input.basemap]
   const rings = ringsAroundCue(input, tone)
@@ -101,7 +135,10 @@ export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
     ],
     labels: {
       type: 'FeatureCollection',
-      features: [...rings.labels, ...(input.showLabels ? gridLabelFeatures(built, tone) : [])],
+      features: [
+        ...rings.labels,
+        ...(input.isGridLabelsVisible ? gridLabelFeatures(built, tone) : []),
+      ],
     },
   }
 }

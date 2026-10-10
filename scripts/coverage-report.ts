@@ -6,12 +6,23 @@
 import { appendFile, cp, mkdir, readFile, writeFile } from 'node:fs/promises'
 
 type Metric = { pct: number; covered: number; total: number }
-type Summary = { total: Record<'lines' | 'statements' | 'functions' | 'branches', Metric> }
+type Summary = {
+  total: Record<'lines' | 'statements' | 'functions' | 'branches', Metric>
+}
 
-const summary: Summary = JSON.parse(await readFile('coverage/coverage-summary.json', 'utf8'))
+const summary: Summary = JSON.parse(
+  await readFile('coverage/coverage-summary.json', 'utf8'),
+)
 const lines = summary.total.lines.pct
 
-const colour = lines >= 90 ? '#3fb950' : lines >= 80 ? '#a3c51c' : lines >= 70 ? '#dfb317' : '#e05d44'
+const colour =
+  lines >= 90
+    ? '#3fb950'
+    : lines >= 80
+      ? '#a3c51c'
+      : lines >= 70
+        ? '#dfb317'
+        : '#e05d44'
 const label = 'coverage'
 const value = `${lines.toFixed(1)}%`
 const textWidth = (text: string) => Math.round(text.length * 6.5 + 10)
@@ -40,9 +51,15 @@ await cp('coverage', 'dist/coverage', { recursive: true })
 const stepSummary = process.env['GITHUB_STEP_SUMMARY']
 if (stepSummary) {
   const rows = (['lines', 'statements', 'functions', 'branches'] as const)
-    .map(key => `| ${key} | ${summary.total[key].pct.toFixed(1)}% | ${summary.total[key].covered} / ${summary.total[key].total} |`)
+    .map(
+      key =>
+        `| ${key} | ${summary.total[key].pct.toFixed(1)}% | ${summary.total[key].covered} / ${summary.total[key].total} |`,
+    )
     .join('\n')
-  await appendFile(stepSummary, `## Test coverage\n\n| Metric | Covered | Count |\n| --- | --- | --- |\n${rows}\n`)
+  await appendFile(
+    stepSummary,
+    `## Test coverage\n\n| Metric | Covered | Count |\n| --- | --- | --- |\n${rows}\n`,
+  )
 }
 
 console.log(`Coverage badge: ${value} (lines)`)

@@ -10,7 +10,9 @@ describe('formatting', () => {
   })
 
   test('DMS carries rounded seconds into minutes and degrees', () => {
-    expect(formatDMS({ lat: 10.9999999, lon: 0 })).toBe('11° 00′ 00.00″ N, 000° 00′ 00.00″ E')
+    expect(formatDMS({ lat: 10.9999999, lon: 0 })).toBe(
+      '11° 00′ 00.00″ N, 000° 00′ 00.00″ E',
+    )
   })
 })
 

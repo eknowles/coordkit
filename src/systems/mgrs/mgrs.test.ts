@@ -12,8 +12,12 @@ describe('MGRS', () => {
       const ours = toMgrs(p, 5)
       const ref = mgrsRef.forward([p.lon, p.lat], 5)
       expect(ours.slice(0, -10)).toBe(ref.slice(0, -10))
-      expect(Math.abs(Number(ours.slice(-10, -5)) - Number(ref.slice(-10, -5)))).toBeLessThanOrEqual(1)
-      expect(Math.abs(Number(ours.slice(-5)) - Number(ref.slice(-5)))).toBeLessThanOrEqual(1)
+      expect(
+        Math.abs(Number(ours.slice(-10, -5)) - Number(ref.slice(-10, -5))),
+      ).toBeLessThanOrEqual(1)
+      expect(
+        Math.abs(Number(ours.slice(-5)) - Number(ref.slice(-5))),
+      ).toBeLessThanOrEqual(1)
     }
   })
 
@@ -33,7 +37,9 @@ describe('MGRS', () => {
   test('precision truncates', () => {
     const p = { lat: 51.50735, lon: -0.12776 }
     const full = toMgrs(p, 5)
-    expect(toMgrs(p, 3)).toBe(full.slice(0, 5) + full.slice(5, 8) + full.slice(10, 13))
+    expect(toMgrs(p, 3)).toBe(
+      full.slice(0, 5) + full.slice(5, 8) + full.slice(10, 13),
+    )
     expect(toMgrs(p, 0)).toBe(full.slice(0, 5))
   })
 })

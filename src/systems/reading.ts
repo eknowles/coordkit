@@ -1,6 +1,10 @@
 import type { Reading } from './types'
 
-export const pairReading = (first: string, second: string, separator = ', '): Reading => ({
+export const pairReading = (
+  first: string,
+  second: string,
+  separator = ', ',
+): Reading => ({
   lines: [first, second],
   copyText: `${first}${separator}${second}`,
 })

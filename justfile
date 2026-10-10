@@ -16,6 +16,18 @@ dev port="5180":
 typecheck:
     bun run typecheck
 
+# Lint with oxlint and the Foldkit plugin rules
+lint:
+    bun run lint
+
+# Format the sources with oxfmt
+format:
+    bun run format
+
+# Fail if any source is not formatted
+format-check:
+    bun run format:check
+
 # Run the unit and story tests
 test:
     bun run test
@@ -24,8 +36,8 @@ test:
 coverage:
     bun run test --coverage
 
-# Type-check and test with coverage
-check: typecheck coverage
+# Check formatting, lint, type-check and test with coverage
+check: format-check lint typecheck coverage
 
 # Build the static site into dist/
 build:

@@ -7,9 +7,17 @@ import tailwindcss from '@tailwindcss/vite'
 const DAY = 24 * 60 * 60
 
 /** Map data comes from other hosts, so it is cached as it is viewed rather than precached. */
-const cacheAsViewed = (cacheName: string, maxEntries: number, maxAgeDays: number) => ({
+const cacheAsViewed = (
+  cacheName: string,
+  maxEntries: number,
+  maxAgeDays: number,
+) => ({
   cacheName,
-  expiration: { maxEntries, maxAgeSeconds: maxAgeDays * DAY, purgeOnQuotaError: true },
+  expiration: {
+    maxEntries,
+    maxAgeSeconds: maxAgeDays * DAY,
+    purgeOnQuotaError: true,
+  },
   cacheableResponse: { statuses: [0, 200] },
 })
 
@@ -25,7 +33,8 @@ export default defineConfig({
       manifest: {
         name: 'CoordKit',
         short_name: 'CoordKit',
-        description: 'Compare a WGS84 position in DD, DMS, DDM, UTM, MGRS, GARS and other coordinate systems.',
+        description:
+          'Compare a WGS84 position in DD, DMS, DDM, UTM, MGRS, GARS and other coordinate systems.',
         start_url: './',
         scope: './',
         display: 'standalone',
@@ -36,7 +45,12 @@ export default defineConfig({
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
       },
@@ -56,7 +70,9 @@ export default defineConfig({
             options: cacheAsViewed('fonts', 60, 365),
           },
           {
-            urlPattern: ({ url }) => url.hostname.endsWith('cartocdn.com') && url.pathname.endsWith('.json'),
+            urlPattern: ({ url }) =>
+              url.hostname.endsWith('cartocdn.com') &&
+              url.pathname.endsWith('.json'),
             handler: 'StaleWhileRevalidate',
             options: cacheAsViewed('map-styles', 50, 30),
           },
@@ -79,6 +95,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 2500,
   },
   optimizeDeps: {
-    entries: ['src/app/entry.ts'],
+    entries: ['src/entry.ts'],
   },
 })

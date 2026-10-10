@@ -1,8 +1,7 @@
+import gifenc from 'gifenc'
 // Record the README demo GIF from a running preview (`just preview`) with headless Chrome, using the app defaults.
 // Set CHROME_PATH if Chrome is not in the default macOS location, and COORDKIT_URL for another server.
 import { writeFile } from 'node:fs/promises'
-
-import gifenc from 'gifenc'
 import pngjs from 'pngjs'
 import puppeteer from 'puppeteer-core'
 
@@ -33,16 +32,26 @@ const installCursor = () => {
   cursor.innerHTML = `<svg width="31" height="31" viewBox="0 0 31 31" fill="none" stroke-linecap="square">
     <path d="M15.5 2v9M15.5 20v9M2 15.5h9M20 15.5h9" stroke="#111113" stroke-width="4"/>
     <path d="M15.5 2v9M15.5 20v9M2 15.5h9M20 15.5h9" stroke="#f5f5f5" stroke-width="1.6"/></svg>`
-  addEventListener('DOMContentLoaded', () => document.body.append(style, cursor))
-  addEventListener('mousemove', event => {
-    cursor.style.left = `${event.clientX}px`
-    cursor.style.top = `${event.clientY}px`
-  }, true)
-  addEventListener('mousedown', () => {
-    cursor.classList.remove('click')
-    void cursor.offsetWidth
-    cursor.classList.add('click')
-  }, true)
+  addEventListener('DOMContentLoaded', () =>
+    document.body.append(style, cursor),
+  )
+  addEventListener(
+    'mousemove',
+    event => {
+      cursor.style.left = `${event.clientX}px`
+      cursor.style.top = `${event.clientY}px`
+    },
+    true,
+  )
+  addEventListener(
+    'mousedown',
+    () => {
+      cursor.classList.remove('click')
+      void cursor.offsetWidth
+      cursor.classList.add('click')
+    },
+    true,
+  )
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -55,7 +64,10 @@ const glide = async (page, x, y, ms = 900) => {
   for (let i = 1; i <= steps; i++) {
     const t = i / steps
     const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
-    await page.mouse.move(from.x + (x - from.x) * eased, from.y + (y - from.y) * eased)
+    await page.mouse.move(
+      from.x + (x - from.x) * eased,
+      from.y + (y - from.y) * eased,
+    )
     await sleep(ms / steps)
   }
   mouse = { x, y }
@@ -67,14 +79,23 @@ const centreOf = async (page, selector) => {
 }
 
 const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  executablePath:
+    process.env.CHROME_PATH ??
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   headless: true,
-  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars'],
+  args: [
+    '--use-angle=swiftshader',
+    '--enable-unsafe-swiftshader',
+    '--hide-scrollbars',
+  ],
 })
 const page = await browser.newPage()
 await page.setViewport(VIEWPORT)
 await page.evaluateOnNewDocument(installCursor)
-await page.goto(`${BASE}#view=9.7/51.505/-0.11`, { waitUntil: 'networkidle0', timeout: 60000 })
+await page.goto(`${BASE}#view=9.7/51.505/-0.11`, {
+  waitUntil: 'networkidle0',
+  timeout: 60000,
+})
 await sleep(2000)
 await page.mouse.move(mouse.x, mouse.y)
 
@@ -101,7 +122,7 @@ for (let i = 0; i < 9; i++) {
 }
 await sleep(1600)
 // 4. Turn on GARS.
-const gars = await centreOf(page, 'button[title^="GARS"]')
+const gars = await centreOf(page, '::-p-aria([name="GARS"][role="switch"])')
 await glide(page, gars.x, gars.y, 900)
 await page.mouse.click(gars.x, gars.y)
 await sleep(1500)
@@ -120,10 +141,13 @@ await session.send('Page.stopScreencast')
 await browser.close()
 
 // Keep frames at least MIN_FRAME_MS apart, then turn the gaps into frame delays.
-const kept = frames.filter((frame, index) => index === 0 || frame.time - frames[index - 1].time >= 0)
+const kept = frames.filter(
+  (frame, index) => index === 0 || frame.time - frames[index - 1].time >= 0,
+)
 const sampled = []
 for (const frame of kept) {
-  if (sampled.length === 0 || frame.time - sampled.at(-1).time >= MIN_FRAME_MS) sampled.push(frame)
+  if (sampled.length === 0 || frame.time - sampled.at(-1).time >= MIN_FRAME_MS)
+    sampled.push(frame)
 }
 
 const decode = frame => {
@@ -152,7 +176,11 @@ const images = sampled.map(decode)
 // Set DEMO_FRAMES_DIR to also save every 20th frame as a PNG, to check the recording.
 if (process.env.DEMO_FRAMES_DIR) {
   for (const [index, frame] of sampled.entries()) {
-    if (index % 20 === 0) await writeFile(`${process.env.DEMO_FRAMES_DIR}/frame-${index}.png`, Buffer.from(frame.data, 'base64'))
+    if (index % 20 === 0)
+      await writeFile(
+        `${process.env.DEMO_FRAMES_DIR}/frame-${index}.png`,
+        Buffer.from(frame.data, 'base64'),
+      )
   }
 }
 const { width, height } = images[0]
@@ -161,7 +189,9 @@ const { width, height } = images[0]
 const sampleEvery = Math.max(1, Math.floor(images.length / 12))
 const sample = images.filter((_, index) => index % sampleEvery === 0)
 const pool = new Uint8Array(sample.length * width * height * 4)
-sample.forEach((image, index) => pool.set(image.rgba, index * width * height * 4))
+sample.forEach((image, index) =>
+  pool.set(image.rgba, index * width * height * 4),
+)
 const palette = quantize(pool, TRANSPARENT)
 palette.push([0, 0, 0])
 
@@ -176,7 +206,9 @@ images.forEach((image, index) => {
     }
   }
   const next = sampled[index + 1]
-  const delay = next ? Math.max(MIN_FRAME_MS, Math.round(next.time - sampled[index].time)) : 1500
+  const delay = next
+    ? Math.max(MIN_FRAME_MS, Math.round(next.time - sampled[index].time))
+    : 1500
   gif.writeFrame(frame, width, height, {
     palette: index === 0 ? palette : undefined,
     delay,
@@ -188,4 +220,6 @@ images.forEach((image, index) => {
 })
 gif.finish()
 await writeFile(OUT, gif.bytes())
-console.log(`${OUT}: ${images.length} frames, ${width}x${height}, ${(gif.bytes().length / 1e6).toFixed(1)} MB`)
+console.log(
+  `${OUT}: ${images.length} frames, ${width}x${height}, ${(gif.bytes().length / 1e6).toFixed(1)} MB`,
+)

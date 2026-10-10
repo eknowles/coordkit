@@ -54,7 +54,8 @@ describe('UPS', () => {
 
 describe('GZD grid', () => {
   test('cells include the Norway and Svalbard exceptions and the UPS caps', () => {
-    const find = (zone: number | null, band: string) => GZD_CELLS.find(c => c.zone === zone && c.band === band)
+    const find = (zone: number | null, band: string) =>
+      GZD_CELLS.find(c => c.zone === zone && c.band === band)
     expect(find(32, 'V')).toMatchObject({ west: 3, east: 12 })
     expect(find(31, 'V')).toMatchObject({ west: 0, east: 3 })
     expect(find(33, 'X')).toMatchObject({ west: 9, east: 21 })

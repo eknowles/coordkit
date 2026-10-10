@@ -1,0 +1,26 @@
+import type { Document, HtmlBuilder } from 'foldkit/html'
+
+import * as CoordkitMap from './map'
+import type { Message } from './message'
+import type { Model } from './model'
+import * as Readout from './readout'
+import * as Toolbar from './toolbar'
+
+export const view = (model: Model, h: HtmlBuilder<Message>): Document => ({
+  title: 'CoordKit',
+  body: h.div(
+    [h.Class('flex h-dvh w-screen flex-col bg-surface text-ink')],
+    [
+      Toolbar.view(model, h),
+      h.main(
+        [h.Class('relative min-h-0 flex-1 overflow-hidden')],
+        [
+          CoordkitMap.view(model, h),
+          CoordkitMap.errorView(model, h),
+          model.layout === 'Compact' ? Readout.sheetView(model, h) : h.empty,
+        ],
+      ),
+      model.layout === 'Wide' ? Readout.tableView(model, h) : h.empty,
+    ],
+  ),
+})

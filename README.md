@@ -17,15 +17,16 @@
 
 <img src="docs/demo.gif" alt="A short recording: the cursor moves over London and the readout updates, a click sets the cue and draws range rings, the map zooms in to the MGRS grid, GARS cells turn on, and a search moves the map to the Eiffel Tower" width="100%" />
 
-
 </div>
 
 ## What CoordKit does
 
 - **Cursor and cue.** Move the cross-shaped cursor over the map, and every system shows the cursor position. Click the map to set the cue. The cue stays in place, so you can compare the two positions.
-- **Copy.** Click a value in the readout table to copy it.
+- **Copy.** Click a value in the readout to copy it.
+- **Phones.** The readout is a sheet of cards at the bottom of the map. Swipe left and right to see each system. The sheet opens when you set the cue, and closes when you clear it.
 - **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells and a latitude and longitude graticule. The grid spacing changes with the zoom level.
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
+- **Find my location.** The location button asks the browser for your position, then sets the cue there.
 - **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres. Use the **Rings** button to show or hide them.
 - **Base maps.** Satellite imagery, a dark map or a light map. Grid colours and label halos change to suit each one.
 - **Web Mercator or globe.** Web Mercator shows what most web maps show. The globe shows grids without distortion.
@@ -36,19 +37,19 @@
 
 ## Coordinate systems
 
-| System | Readout | Search | Map grid | Example | Reference |
-| --- | :---: | :---: | :---: | --- | --- |
-| Decimal degrees (DD) | ✓ | ✓ | graticule | `51.507351, -0.127758` | [Wikipedia](https://en.wikipedia.org/wiki/Decimal_degrees) |
-| Degrees, minutes, seconds (DMS) | ✓ | ✓ | graticule | `51° 30′ 26.46″ N, 000° 07′ 39.93″ W` | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system) |
-| Degrees, decimal minutes (DDM) | ✓ | ✓ | graticule | `51° 30.4411′ N, 000° 07.6655′ W` | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system) |
-| Universal Transverse Mercator (UTM) | ✓ | ✓ | zones | `30U 699319E 5710158N` | [Wikipedia](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) |
-| Universal Polar Stereographic (UPS) | ✓ | ✓ | zones | `UPS N 2000000E 2000000N` | [Wikipedia](https://en.wikipedia.org/wiki/Universal_polar_stereographic_coordinate_system) |
-| Military Grid Reference System (MGRS) | ✓ | ✓ | ✓ | `30U XC 99319 10158` | [Wikipedia](https://en.wikipedia.org/wiki/Military_Grid_Reference_System) |
-| Global Area Reference System (GARS) | ✓ | ✓ | ✓ | `360MV48` | [Wikipedia](https://en.wikipedia.org/wiki/Global_Area_Reference_System) |
-| Geohash | ✓ | ✓ | | `gcpvj0duq` | [Wikipedia](https://en.wikipedia.org/wiki/Geohash) |
-| Maidenhead Locator System | ✓ | ✓ | | `IO91wm41` | [Wikipedia](https://en.wikipedia.org/wiki/Maidenhead_Locator_System) |
-| Web Mercator (EPSG:3857) | ✓ | | | `-14221.99, 6711533.69` | [Wikipedia](https://en.wikipedia.org/wiki/Web_Mercator_projection) |
-| Earth-centred, Earth-fixed (ECEF) | ✓ | | | `3977998.56, -8870.17, 4968871.54` | [Wikipedia](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system) |
+| System                                | Readout | Search | Map grid  | Example                               | Reference                                                                                  |
+| ------------------------------------- | :-----: | :----: | :-------: | ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Decimal degrees (DD)                  |    ✓    |   ✓    | graticule | `51.507351, -0.127758`                | [Wikipedia](https://en.wikipedia.org/wiki/Decimal_degrees)                                 |
+| Degrees, minutes, seconds (DMS)       |    ✓    |   ✓    | graticule | `51° 30′ 26.46″ N, 000° 07′ 39.93″ W` | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
+| Degrees, decimal minutes (DDM)        |    ✓    |   ✓    | graticule | `51° 30.4411′ N, 000° 07.6655′ W`     | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
+| Universal Transverse Mercator (UTM)   |    ✓    |   ✓    |   zones   | `30U 699319E 5710158N`                | [Wikipedia](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) |
+| Universal Polar Stereographic (UPS)   |    ✓    |   ✓    |   zones   | `UPS N 2000000E 2000000N`             | [Wikipedia](https://en.wikipedia.org/wiki/Universal_polar_stereographic_coordinate_system) |
+| Military Grid Reference System (MGRS) |    ✓    |   ✓    |     ✓     | `30U XC 99319 10158`                  | [Wikipedia](https://en.wikipedia.org/wiki/Military_Grid_Reference_System)                  |
+| Global Area Reference System (GARS)   |    ✓    |   ✓    |     ✓     | `360MV48`                             | [Wikipedia](https://en.wikipedia.org/wiki/Global_Area_Reference_System)                    |
+| Geohash                               |    ✓    |   ✓    |           | `gcpvj0duq`                           | [Wikipedia](https://en.wikipedia.org/wiki/Geohash)                                         |
+| Maidenhead Locator System             |    ✓    |   ✓    |           | `IO91wm41`                            | [Wikipedia](https://en.wikipedia.org/wiki/Maidenhead_Locator_System)                       |
+| Web Mercator (EPSG:3857)              |    ✓    |        |           | `-14221.99, 6711533.69`               | [Wikipedia](https://en.wikipedia.org/wiki/Web_Mercator_projection)                         |
+| Earth-centred, Earth-fixed (ECEF)     |    ✓    |        |           | `3977998.56, -8870.17, 4968871.54`    | [Wikipedia](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system)   |
 
 All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) datum.
 
@@ -58,17 +59,17 @@ All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_Syste
 
 ### Accepted search formats
 
-| Format | Example input |
-| --- | --- |
-| DD | `51.5074, -0.1278` or `51.5074 -0.1278` or `51.5074N 0.1278W` |
-| DMS | `51°30'26.5"N 0°07'40"W` |
-| DDM | `51 30.441 N, 0 7.666 W` |
-| UTM | `30U 699319 5710158` |
-| UPS | `UPS N 2000000 2000000` |
-| MGRS | `30UXC9931910158` or `30U XC 993 101` |
-| GARS | `361HN37` |
-| Maidenhead | `IO91wm` |
-| Geohash | `gcpvj0duq` or `gh:u4pr` |
+| Format     | Example input                                                 |
+| ---------- | ------------------------------------------------------------- |
+| DD         | `51.5074, -0.1278` or `51.5074 -0.1278` or `51.5074N 0.1278W` |
+| DMS        | `51°30'26.5"N 0°07'40"W`                                      |
+| DDM        | `51 30.441 N, 0 7.666 W`                                      |
+| UTM        | `30U 699319 5710158`                                          |
+| UPS        | `UPS N 2000000 2000000`                                       |
+| MGRS       | `30UXC9931910158` or `30U XC 993 101`                         |
+| GARS       | `361HN37`                                                     |
+| Maidenhead | `IO91wm`                                                      |
+| Geohash    | `gcpvj0duq` or `gh:u4pr`                                      |
 
 ## Screenshots
 
@@ -94,20 +95,20 @@ All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_Syste
 
 ## Built with
 
-| | Tool | Use |
-| --- | --- | --- |
-| <img src="https://foldkit.dev/favicon.svg" width="16" alt="" /> | [Foldkit](https://foldkit.dev) | The Elm Architecture in TypeScript: one Model, an `update` function, Commands and Subscriptions |
-| <img src="https://effect.website/favicon.png" width="16" alt="" /> | [Effect](https://effect.website) | Schemas for the Model and Messages, and the effects in Commands |
-| <img src="https://maplibre.org/favicon.ico" width="16" alt="" /> | [MapLibre GL JS](https://maplibre.org) | The map, the globe projection and the grid labels |
-| <img src="https://deck.gl/favicon.png" width="16" alt="" /> | [deck.gl](https://deck.gl) | Grid lines, cue outlines and range rings |
-| <img src="https://vite.dev/logo.svg" width="16" alt="" /> | [Vite](https://vite.dev) | The development server and the build |
-| <img src="https://bun.sh/logo.svg" width="16" alt="" /> | [Bun](https://bun.sh) | Packages and scripts |
-| <img src="https://vitest.dev/logo.svg" width="16" alt="" /> | [Vitest](https://vitest.dev) | Unit, story and scene tests, and coverage |
-| <img src="https://tailwindcss.com/favicons/favicon-32x32.png" width="16" alt="" /> | [Tailwind CSS](https://tailwindcss.com) | Styles |
-| <img src="https://vite-pwa-org.netlify.app/favicon.svg" width="16" alt="" /> | [Vite PWA](https://vite-pwa-org.netlify.app) | The web app manifest and the Workbox service worker |
-| <img src="https://www.jetify.com/favicon.ico" width="16" alt="" /> | [Devbox](https://www.jetify.com/devbox) and [just](https://just.systems) | A repeatable toolchain and the project commands |
-| | [Inter](https://rsms.me/inter/) and [JetBrains Mono](https://www.jetbrains.com/lp/mono/) | Interface text and coordinate values |
-| | [CARTO basemaps](https://carto.com/basemaps) and [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) | The dark, light and satellite base maps |
+|                                                                                    | Tool                                                                                                                                             | Use                                                                                             |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| <img src="https://foldkit.dev/favicon.svg" width="16" alt="" />                    | [Foldkit](https://foldkit.dev)                                                                                                                   | The Elm Architecture in TypeScript: one Model, an `update` function, Commands and Subscriptions |
+| <img src="https://effect.website/favicon.png" width="16" alt="" />                 | [Effect](https://effect.website)                                                                                                                 | Schemas for the Model and Messages, and the effects in Commands                                 |
+| <img src="https://maplibre.org/favicon.ico" width="16" alt="" />                   | [MapLibre GL JS](https://maplibre.org)                                                                                                           | The map, the globe projection and the grid labels                                               |
+| <img src="https://deck.gl/favicon.png" width="16" alt="" />                        | [deck.gl](https://deck.gl)                                                                                                                       | Grid lines, cue outlines and range rings                                                        |
+| <img src="https://vite.dev/logo.svg" width="16" alt="" />                          | [Vite](https://vite.dev)                                                                                                                         | The development server and the build                                                            |
+| <img src="https://bun.sh/logo.svg" width="16" alt="" />                            | [Bun](https://bun.sh)                                                                                                                            | Packages and scripts                                                                            |
+| <img src="https://vitest.dev/logo.svg" width="16" alt="" />                        | [Vitest](https://vitest.dev)                                                                                                                     | Unit, story and scene tests, and coverage                                                       |
+| <img src="https://tailwindcss.com/favicons/favicon-32x32.png" width="16" alt="" /> | [Tailwind CSS](https://tailwindcss.com)                                                                                                          | Styles                                                                                          |
+| <img src="https://vite-pwa-org.netlify.app/favicon.svg" width="16" alt="" />       | [Vite PWA](https://vite-pwa-org.netlify.app)                                                                                                     | The web app manifest and the Workbox service worker                                             |
+| <img src="https://www.jetify.com/favicon.ico" width="16" alt="" />                 | [Devbox](https://www.jetify.com/devbox) and [just](https://just.systems)                                                                         | A repeatable toolchain and the project commands                                                 |
+|                                                                                    | [Inter](https://rsms.me/inter/) and [JetBrains Mono](https://www.jetbrains.com/lp/mono/)                                                         | Interface text and coordinate values                                                            |
+|                                                                                    | [CARTO basemaps](https://carto.com/basemaps) and [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) | The dark, light and satellite base maps                                                         |
 
 The tests use [proj4js](https://github.com/proj4js/proj4js) and the [mgrs](https://github.com/proj4js/mgrs) package as reference implementations. The application does not include them.
 
@@ -124,8 +125,8 @@ The tests are in three groups:
 Each deploy runs the tests with coverage. The deploy publishes the badge above and the [full coverage report](https://eknowles.github.io/coordkit/coverage/). The build fails if coverage falls below these values:
 
 | Lines | Statements | Functions | Branches |
-| --- | --- | --- | --- |
-| 93% | 92% | 85% | 84% |
+| ----- | ---------- | --------- | -------- |
+| 93%   | 92%        | 85%       | 84%      |
 
 To see the report on your computer, run `just coverage`, then open `coverage/index.html`.
 
@@ -164,32 +165,36 @@ The development server also shows the Foldkit DevTools panel. Use it to see the 
 
 ### Commands
 
-| Command | Description |
-| --- | --- |
-| `just dev` | Starts the Vite development server on port 5180. |
-| `just test` | Runs the tests. |
-| `just coverage` | Runs the tests with a coverage report. |
-| `just typecheck` | Runs the TypeScript compiler without output. |
-| `just check` | Runs the type check and the tests with coverage. |
-| `just build` | Builds the static site into `dist/`. |
-| `just preview` | Builds the site and serves `dist/` on port 4173. Use it to test the service worker, because the development server does not register it. |
-| `just icons` | Makes the favicons and app icons from `public/logo.svg`. Needs `rsvg-convert`. |
-| `just screenshots` | Captures the README screenshots from the preview server. Needs Google Chrome. |
-| `just demo` | Records the README demo GIF from the preview server. Needs Google Chrome. |
+| Command            | Description                                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `just dev`         | Starts the Vite development server on port 5180.                                                                                         |
+| `just test`        | Runs the tests.                                                                                                                          |
+| `just coverage`    | Runs the tests with a coverage report.                                                                                                   |
+| `just typecheck`   | Runs the TypeScript compiler without output.                                                                                             |
+| `just lint`        | Runs oxlint with the Foldkit rules.                                                                                                      |
+| `just format`      | Formats the sources with oxfmt.                                                                                                          |
+| `just check`       | Checks the format, runs the linter and the type check, and runs the tests with coverage.                                                 |
+| `just build`       | Builds the static site into `dist/`.                                                                                                     |
+| `just preview`     | Builds the site and serves `dist/` on port 4173. Use it to test the service worker, because the development server does not register it. |
+| `just icons`       | Makes the favicons and app icons from `public/logo.svg`. Needs `rsvg-convert`.                                                           |
+| `just screenshots` | Captures the README screenshots from the preview server. Needs Google Chrome.                                                            |
+| `just demo`        | Records the README demo GIF from the preview server. Needs Google Chrome.                                                                |
 
 To run a command without a Devbox shell, use `devbox run -- just <recipe>`.
 
 ## Architecture
 
-| Folder | Contents |
-| --- | --- |
-| `src/app/` | The Foldkit shell: Model, Messages, Flags, Subscriptions, `init`, `update`, app Commands and the root view. |
-| `src/map/` | The map adapter: the `MountMap` Mount, map Commands, grid overlays, grid labels, the cue marker and range rings. |
-| `src/toolbar/` | The toolbar above the map: search, grid toggles, range rings, precision, base map and projection. |
-| `src/readout/` | The readout table. Rows are positions and columns are coordinate systems. |
-| `src/ui/` | Shared view parts: icons, the select control and grid colour swatches. |
-| `src/systems/` | One folder for each coordinate system, the capability interfaces and the registry. |
-| `src/geo/` | Ellipsoid constants, shared geometry and the WGS84 geodesic. |
+| Folder                                    | Contents                                                                                                                                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/`                                    | The Foldkit root: Model, Messages, Flags, Subscriptions, `init`, `update`, the URL Command and the root view.                                                                                                                               |
+| `src/settings/`, `src/goTo/`, `src/copy/` | Submodels for the map settings, for search and "Find my location", and for the copy feedback in the readout.                                                                                                                                |
+| `src/domain/`                             | Schemas that more than one module uses, for example the position, the camera and the base map.                                                                                                                                              |
+| `src/map/`                                | The map adapter: the `<coordkit-map>` custom element, grid overlays, grid labels, the cue marker and range rings. The view sets the element's properties from the Model, so the map always matches the Model, also in DevTools time travel. |
+| `src/toolbar/`                            | The toolbar above the map. It shows the search, settings and overlay views of the Submodels.                                                                                                                                                |
+| `src/readout/`                            | The readout: a table on wide screens and a sheet of cards on phones. Rows are positions and columns are coordinate systems.                                                                                                                 |
+| `src/ui/`                                 | Shared view parts: icons, the select control, the overlay switch and grid colour swatches.                                                                                                                                                  |
+| `src/systems/`                            | One folder for each coordinate system, the capability interfaces and the registry.                                                                                                                                                          |
+| `src/geo/`                                | Ellipsoid constants, shared geometry and the WGS84 geodesic.                                                                                                                                                                                |
 
 Each coordinate system can supply three capabilities:
 

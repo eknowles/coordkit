@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* repos/foldkit is a vendored reference copy of Foldkit; keep its class names out of the build. */
+@source not '../repos';
+
 /*
  * Neutral greys with one blue accent. The grid line colours live with each coordinate
  * system in src/systems; keep them distinct from each other and from the cue.

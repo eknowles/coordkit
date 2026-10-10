@@ -13,11 +13,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/test/**', 'src/vitest-setup.ts', 'src/app/entry.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/test/**',
+        'src/vitest-setup.ts',
+        'src/entry.ts',
+      ],
       reporter: ['text', 'text-summary', 'json-summary', 'html'],
       reportsDirectory: 'coverage',
       // NOTE: a little under the current figures, so coverage cannot drop unnoticed.
-      thresholds: { lines: 93, statements: 92, functions: 85, branches: 84 },
+      thresholds: { lines: 94, statements: 93, functions: 89, branches: 88 },
     },
   },
 })

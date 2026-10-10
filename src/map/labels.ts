@@ -15,7 +15,10 @@ const addLabelLayer = (map: MapInstance): void => {
   if (map.getSource(LABEL_SOURCE_ID)) {
     return
   }
-  map.addSource(LABEL_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+  map.addSource(LABEL_SOURCE_ID, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  })
   map.addLayer({
     id: LABEL_SOURCE_ID,
     type: 'symbol',
@@ -46,7 +49,10 @@ export const ensureLabelLayer = (map: MapInstance): boolean => {
   }
 }
 
-export const setLabels = (map: MapInstance, labels: GeoJSON.FeatureCollection): void => {
+export const setLabels = (
+  map: MapInstance,
+  labels: GeoJSON.FeatureCollection,
+): void => {
   if (ensureLabelLayer(map)) {
     map.getSource<GeoJSONSource>(LABEL_SOURCE_ID)?.setData(labels)
   }
