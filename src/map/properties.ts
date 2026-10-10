@@ -10,6 +10,7 @@ import {
 } from '../domain'
 import { GarsPrecision } from '../systems/gars'
 import { MgrsPrecision } from '../systems/mgrs'
+import { TileZoom } from '../systems/tile'
 
 /**
  * The properties of `<coordkit-map>`, declared once. The element's TypeScript type and the
@@ -23,6 +24,7 @@ export const mapPropertyFields = {
   cue: Schema.Option(LatLon.LatLon),
   mgrsPrecision: MgrsPrecision,
   garsPrecision: GarsPrecision,
+  tileZoom: TileZoom,
   isRangeRingsVisible: Schema.Boolean,
   ringSpacing: RangeRings.RingSpacing,
   ringUnit: RangeRings.RingUnit,
@@ -57,6 +59,7 @@ export const initialMapProperties: MapProperties = {
   cue: Option.none(),
   mgrsPrecision: 0,
   garsPrecision: 30,
+  tileZoom: 12,
   isRangeRingsVisible: true,
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',

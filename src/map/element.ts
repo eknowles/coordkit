@@ -303,6 +303,7 @@ export class CoordkitMapElement extends HTMLElement {
         options: {
           mgrsPrecision: properties.mgrsPrecision,
           garsPrecision: properties.garsPrecision,
+          tileZoom: properties.tileZoom,
         },
         isRangeRingsVisible: properties.isRangeRingsVisible,
         ringSpacing: properties.ringSpacing,

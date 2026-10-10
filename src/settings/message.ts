@@ -6,6 +6,7 @@ import { Popover, RadioGroup } from '@foldkit/ui'
 import { RangeRings } from '../domain'
 import { GarsPrecision } from '../systems/gars'
 import { MgrsPrecision } from '../systems/mgrs'
+import { TileZoom } from '../systems/tile'
 
 // MESSAGE
 
@@ -15,6 +16,7 @@ export const Message = defineMessageUnion({
   ToggledRangeRings: {},
   SelectedMgrsPrecision: { precision: MgrsPrecision },
   SelectedGarsPrecision: { precision: GarsPrecision },
+  SelectedTileZoom: { zoom: TileZoom },
   SelectedRingSpacing: { spacing: RangeRings.RingSpacing },
   SelectedRingUnit: { unit: RangeRings.RingUnit },
   GotMenuMessage: { message: Popover.Message },

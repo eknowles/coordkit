@@ -27,6 +27,8 @@
 - **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells and a latitude and longitude graticule. The grid spacing changes with the zoom level.
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
 - **Find my location.** The location button asks the browser for your position, then sets the cue there.
+- **Plus Codes.** CoordKit reads full codes only, because a short code such as `GV4C+WV` needs a reference location. Codes match Google's reference implementation.
+- **Web map tiles.** The readout gives the tile at the zoom level that you set in **Map settings > Precision > Map tile**. The map grid shows the tiles one level deeper than the map zoom.
 - **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres. Use the **Rings** button to show or hide them.
 - **Base maps.** Satellite imagery, a dark map or a light map. Grid colours and label halos change to suit each one.
 - **Web Mercator or globe.** Web Mercator shows what most web maps show. The globe shows grids without distortion.
@@ -37,19 +39,22 @@
 
 ## Coordinate systems
 
-| System                                | Readout | Search | Map grid  | Example                               | Reference                                                                                  |
-| ------------------------------------- | :-----: | :----: | :-------: | ------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Decimal degrees (DD)                  |    ✓    |   ✓    | graticule | `51.507351, -0.127758`                | [Wikipedia](https://en.wikipedia.org/wiki/Decimal_degrees)                                 |
-| Degrees, minutes, seconds (DMS)       |    ✓    |   ✓    | graticule | `51° 30′ 26.46″ N, 000° 07′ 39.93″ W` | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
-| Degrees, decimal minutes (DDM)        |    ✓    |   ✓    | graticule | `51° 30.4411′ N, 000° 07.6655′ W`     | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
-| Universal Transverse Mercator (UTM)   |    ✓    |   ✓    |   zones   | `30U 699319E 5710158N`                | [Wikipedia](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) |
-| Universal Polar Stereographic (UPS)   |    ✓    |   ✓    |   zones   | `UPS N 2000000E 2000000N`             | [Wikipedia](https://en.wikipedia.org/wiki/Universal_polar_stereographic_coordinate_system) |
-| Military Grid Reference System (MGRS) |    ✓    |   ✓    |     ✓     | `30U XC 99319 10158`                  | [Wikipedia](https://en.wikipedia.org/wiki/Military_Grid_Reference_System)                  |
-| Global Area Reference System (GARS)   |    ✓    |   ✓    |     ✓     | `360MV48`                             | [Wikipedia](https://en.wikipedia.org/wiki/Global_Area_Reference_System)                    |
-| Geohash                               |    ✓    |   ✓    |           | `gcpvj0duq`                           | [Wikipedia](https://en.wikipedia.org/wiki/Geohash)                                         |
-| Maidenhead Locator System             |    ✓    |   ✓    |           | `IO91wm41`                            | [Wikipedia](https://en.wikipedia.org/wiki/Maidenhead_Locator_System)                       |
-| Web Mercator (EPSG:3857)              |    ✓    |        |           | `-14221.99, 6711533.69`               | [Wikipedia](https://en.wikipedia.org/wiki/Web_Mercator_projection)                         |
-| Earth-centred, Earth-fixed (ECEF)     |    ✓    |        |           | `3977998.56, -8870.17, 4968871.54`    | [Wikipedia](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system)   |
+| System                                     | Readout | Search | Map grid  | Example                                | Reference                                                                                  |
+| ------------------------------------------ | :-----: | :----: | :-------: | -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Decimal degrees (DD)                       |    ✓    |   ✓    | graticule | `51.507351, -0.127758`                 | [Wikipedia](https://en.wikipedia.org/wiki/Decimal_degrees)                                 |
+| Degrees, minutes, seconds (DMS)            |    ✓    |   ✓    | graticule | `51° 30′ 26.46″ N, 000° 07′ 39.93″ W`  | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
+| Degrees, decimal minutes (DDM)             |    ✓    |   ✓    | graticule | `51° 30.4411′ N, 000° 07.6655′ W`      | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
+| Universal Transverse Mercator (UTM)        |    ✓    |   ✓    |   zones   | `30U 699319E 5710158N`                 | [Wikipedia](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) |
+| Universal Polar Stereographic (UPS)        |    ✓    |   ✓    |   zones   | `UPS N 2000000E 2000000N`              | [Wikipedia](https://en.wikipedia.org/wiki/Universal_polar_stereographic_coordinate_system) |
+| Military Grid Reference System (MGRS)      |    ✓    |   ✓    |     ✓     | `30U XC 99319 10158`                   | [Wikipedia](https://en.wikipedia.org/wiki/Military_Grid_Reference_System)                  |
+| Global Area Reference System (GARS)        |    ✓    |   ✓    |     ✓     | `360MV48`                              | [Wikipedia](https://en.wikipedia.org/wiki/Global_Area_Reference_System)                    |
+| World Geographic Reference System (GEOREF) |    ✓    |   ✓    |     ✓     | `MKQG5230`                             | [Wikipedia](https://en.wikipedia.org/wiki/World_Geographic_Reference_System)               |
+| Plus Codes (Open Location Code)            |    ✓    |   ✓    |     ✓     | `9C3XGV4C+WV`                          | [Wikipedia](https://en.wikipedia.org/wiki/Open_Location_Code)                              |
+| Geohash                                    |    ✓    |   ✓    |           | `gcpvj0duq`                            | [Wikipedia](https://en.wikipedia.org/wiki/Geohash)                                         |
+| Maidenhead Locator System                  |    ✓    |   ✓    |           | `IO91wm41`                             | [Wikipedia](https://en.wikipedia.org/wiki/Maidenhead_Locator_System)                       |
+| Web map tiles (XYZ and quadkey)            |    ✓    |   ✓    |     ✓     | `12/2046/1362`, quadkey `031313131130` | [OpenStreetMap wiki](https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames)             |
+| Web Mercator (EPSG:3857)                   |    ✓    |        |           | `-14221.99, 6711533.69`                | [Wikipedia](https://en.wikipedia.org/wiki/Web_Mercator_projection)                         |
+| Earth-centred, Earth-fixed (ECEF)          |    ✓    |        |           | `3977998.56, -8870.17, 4968871.54`     | [Wikipedia](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system)   |
 
 All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) datum.
 
@@ -69,6 +74,9 @@ All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_Syste
 | MGRS       | `30UXC9931910158` or `30U XC 993 101`                         |
 | GARS       | `361HN37`                                                     |
 | Maidenhead | `IO91wm`                                                      |
+| GEOREF     | `MKQG5230` or `MKQG`                                          |
+| Plus Code  | `9C3XGV4C+WV` or `9C3XGV00+`                                  |
+| Map tile   | `12/2046/1362` or `qk:031313131130`                           |
 | Geohash    | `gcpvj0duq` or `gh:u4pr`                                      |
 
 ## Screenshots

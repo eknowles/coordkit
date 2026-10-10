@@ -28,6 +28,7 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Html => {
     map.Cue(model.maybeCue),
     map.MgrsPrecision(values.mgrsPrecision),
     map.GarsPrecision(values.garsPrecision),
+    map.TileZoom(values.tileZoom),
     map.IsRangeRingsVisible(values.isRangeRingsVisible),
     map.RingSpacing(values.ringSpacing),
     map.RingUnit(values.ringUnit),

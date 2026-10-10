@@ -100,6 +100,9 @@ export const update = (model: Model, message: Message) =>
     SelectedGarsPrecision: ({ precision }) =>
       updateValues(model, modifyFields({ garsPrecision: () => precision })),
 
+    SelectedTileZoom: ({ zoom }) =>
+      updateValues(model, modifyFields({ tileZoom: () => zoom })),
+
     SelectedRingSpacing: ({ spacing }) =>
       updateValues(model, modifyFields({ ringSpacing: () => spacing })),
 

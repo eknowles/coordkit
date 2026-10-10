@@ -33,7 +33,7 @@ export const view = Submodel.defineView<Model, Message>((model, h) =>
     [
       h.OnSubmit(Message.SubmittedSearch()),
       h.Attribute('autocomplete', 'off'),
-      h.Class('flex min-w-0 flex-1 items-center gap-1.5 xl:flex-none'),
+      h.Class('flex min-w-0 flex-1 items-center gap-1.5 2xl:flex-none'),
     ],
     [
       Input.view(
@@ -47,7 +47,7 @@ export const view = Submodel.defineView<Model, Message>((model, h) =>
           hasDescription: true,
           toView: attributes =>
             h.span(
-              [h.Class('flex min-w-0 flex-1 xl:w-64 xl:flex-none')],
+              [h.Class('flex min-w-0 flex-1 2xl:w-64 2xl:flex-none')],
               [
                 h.label(
                   [...attributes.label, h.Class('sr-only')],
@@ -112,7 +112,7 @@ export const locateButtonView = Submodel.defineView<Model, Message>(
               h.Title('Find my location (sets the cue)'),
               h.Class(
                 clsx(
-                  'ml-auto shrink-0 rounded-md p-1.5 text-muted outline-hidden hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-focus xl:order-last',
+                  'ml-auto shrink-0 rounded-md p-1.5 text-muted outline-hidden hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-focus 2xl:order-last',
                   { 'animate-pulse text-cue': isLocating },
                 ),
               ),

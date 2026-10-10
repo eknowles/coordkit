@@ -36,6 +36,7 @@
     "maplibre-gl": "^5"
   },
   "devDependencies": {
+    "@effect/tsgo": "0.51.1",
     "@foldkit/devtools": "0.167.0",
     "@foldkit/devtools-mcp": "0.24.1",
     "@foldkit/oxlint-plugin": "0.15.3",
@@ -46,6 +47,7 @@
     "gifenc": "^1.0.3",
     "happy-dom": "^20.14.6",
     "mgrs": "^2.2.0",
+    "open-location-code": "1.0.3",
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
     "pngjs": "^7.0.0",
@@ -56,7 +58,6 @@
     "vite": "^8",
     "vite-plugin-pwa": "^2",
     "vitest": "^5.0.3",
-    "workbox-window": "^7.4.1",
-    "@effect/tsgo": "0.51.1"
+    "workbox-window": "^7.4.1"
   }
 }

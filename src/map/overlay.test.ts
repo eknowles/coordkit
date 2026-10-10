@@ -3,6 +3,7 @@ import { modifyFields } from 'foldkit/struct'
 import { describe, expect, test } from 'vitest'
 
 import * as Mgrs from '../systems/mgrs'
+import { grids } from '../systems/registry'
 import { type OverlayInput, buildOverlayFrame } from './overlay'
 
 const input: OverlayInput = {
@@ -11,7 +12,7 @@ const input: OverlayInput = {
   bounds: [-1, 51, 1, 52],
   zoom: 6,
   maybeCue: Option.none(),
-  options: { mgrsPrecision: 5, garsPrecision: 5 },
+  options: { mgrsPrecision: 5, garsPrecision: 5, tileZoom: 12 },
   isRangeRingsVisible: false,
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',
@@ -66,5 +67,25 @@ describe('buildOverlayFrame', () => {
       '5 NM',
       '6 NM',
     ])
+  })
+
+  test('outlines the cue cell only in the grids that are switched on', () => {
+    const cueCellCount = (gridToggles: OverlayInput['gridToggles']) => {
+      const frame = buildOverlayFrame(
+        modifyFields(input, {
+          gridToggles: () => gridToggles,
+          maybeCue: () => Option.some({ lat: 51.5, lon: 0 }),
+        }),
+      )
+      const data = frame.layers.find(layer => layer.id === 'cue-cells')?.props
+        .data
+      return Array.isArray(data) ? data.length : 0
+    }
+    const allOff = Object.fromEntries(grids.map(grid => [grid.id, false]))
+    expect(cueCellCount(allOff)).toBe(0)
+    expect(cueCellCount({ ...allOff, Gars: true })).toBe(1)
+    expect(
+      cueCellCount({ ...allOff, Gars: true, Georef: true, PlusCode: true }),
+    ).toBe(3)
   })
 })

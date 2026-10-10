@@ -131,7 +131,7 @@ export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
     layers: [
       ...Array.map(built, grid => pathLayer(grid, tone)),
       ...rings.layers,
-      ...cueLayers(input.maybeCue, input.options, tone),
+      ...cueLayers(input.maybeCue, input.options, input.gridToggles, tone),
     ],
     labels: {
       type: 'FeatureCollection',

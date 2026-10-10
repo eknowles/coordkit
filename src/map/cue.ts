@@ -3,9 +3,10 @@ import { Array, Option } from 'effect'
 import type { Layer } from '@deck.gl/core'
 import { PathLayer, ScatterplotLayer } from '@deck.gl/layers'
 
+import type { GridToggles } from '../domain'
 import type { LatLon } from '../geo/ellipsoid'
 import type { Position, RGBA } from '../geo/geometry'
-import { grids } from '../systems/registry'
+import { grids, isGridEnabled } from '../systems/registry'
 import type { MapTone, SystemOptions } from '../systems/types'
 import { onTop } from './layerDefaults'
 
@@ -15,20 +16,26 @@ type Outline = Readonly<{ path: ReadonlyArray<Position>; color: RGBA }>
 
 const opaque = ([r, g, b]: RGBA): RGBA => [r, g, b, 255]
 
+/** The cell around the cue in each grid that is switched on. */
 const outlinesAround = (
   cue: LatLon,
   options: SystemOptions,
+  gridToggles: GridToggles.GridToggles,
   tone: MapTone,
 ): ReadonlyArray<Outline> =>
   Array.getSomes(
-    Array.map(grids, grid =>
-      Option.map(
-        Option.flatMap(grid.maybeCueOutline, outline => outline(cue, options)),
-        path => ({
-          path,
-          color: opaque(grid.colors[tone]),
-        }),
-      ),
+    Array.map(
+      Array.filter(grids, grid => isGridEnabled(gridToggles, grid)),
+      grid =>
+        Option.map(
+          Option.flatMap(grid.maybeCueOutline, outline =>
+            outline(cue, options),
+          ),
+          path => ({
+            path,
+            color: opaque(grid.colors[tone]),
+          }),
+        ),
     ),
   )
 
@@ -36,6 +43,7 @@ const outlinesAround = (
 export const cueLayers = (
   maybeCue: Option.Option<LatLon>,
   options: SystemOptions,
+  gridToggles: GridToggles.GridToggles,
   tone: MapTone,
 ): ReadonlyArray<Layer> =>
   Option.match(maybeCue, {
@@ -44,7 +52,7 @@ export const cueLayers = (
       new PathLayer<Outline>({
         ...onTop,
         id: 'cue-cells',
-        data: outlinesAround(cue, options, tone),
+        data: outlinesAround(cue, options, gridToggles, tone),
         getPath: outline => Array.copy(outline.path),
         getColor: outline => outline.color,
         getWidth: 2.5,

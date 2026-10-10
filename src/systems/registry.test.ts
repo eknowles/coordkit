@@ -4,11 +4,16 @@ import { describe, expect, test } from 'vitest'
 import { toGars } from './gars/gars'
 import { toMgrs } from './mgrs/mgrs'
 import { formatters, grids, parseCoordinate, parsers } from './registry'
+import { tilePath, toQuadkey, toTile } from './tile/tile'
 import type { SystemOptions } from './types'
 import { toUtm } from './utm/utm'
 
 const london = { lat: 51.5073509, lon: -0.1277583 }
-const options: SystemOptions = { mgrsPrecision: 5, garsPrecision: 5 }
+const options: SystemOptions = {
+  mgrsPrecision: 5,
+  garsPrecision: 5,
+  tileZoom: 12,
+}
 
 describe('registry', () => {
   test('ids are unique', () => {
@@ -65,6 +70,10 @@ describe('parseCoordinate', () => {
     near('gcpvj0duq', 'Geohash', 0.001)
     near('51.5073509, -0.1277583', 'DD', 1e-6)
     near(`51°30'26.46"N 0°07'39.93"W`, 'DMS', 1e-4)
+    near('MKQG5230', 'GEOREF', 0.02)
+    near('9C3XGV4C+WV', 'Plus Code', 1e-3)
+    near(tilePath(toTile(london, 17)), 'Map tile', 0.01)
+    near(`qk:${toQuadkey(toTile(london, 17))}`, 'Map tile', 0.01)
   })
 
   test('reads UPS', () => {

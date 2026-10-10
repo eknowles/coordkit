@@ -17,6 +17,7 @@ const toneClass: Record<CellTone, string> = {
 const systemOptions = (model: Model): SystemOptions => ({
   mgrsPrecision: model.settings.values.mgrsPrecision,
   garsPrecision: model.settings.values.garsPrecision,
+  tileZoom: model.settings.values.tileZoom,
 })
 
 /** The reading for one row in one system. Click to copy. */

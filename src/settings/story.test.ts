@@ -1,11 +1,11 @@
-import { Option } from 'effect'
+import { Option, Schema } from 'effect'
 import { Command, given, message, model, story } from 'foldkit/story'
 import { describe, expect, test } from 'vitest'
 
 import { RadioGroup } from '@foldkit/ui'
 
 import { Message } from './message'
-import { init } from './model'
+import { ValuesJsonString, defaultValues, init } from './model'
 import { SaveSettings, update } from './update'
 
 const resolveSave = Command.resolve(
@@ -50,6 +50,8 @@ describe('settings', () => {
       resolveSave,
       message(Message.SelectedGarsPrecision({ precision: 5 })),
       resolveSave,
+      message(Message.SelectedTileZoom({ zoom: 17 })),
+      resolveSave,
       message(Message.SelectedRingSpacing({ spacing: '10' })),
       resolveSave,
       message(Message.SelectedRingUnit({ unit: 'Kilometres' })),
@@ -57,6 +59,7 @@ describe('settings', () => {
       model(({ values }) => {
         expect(values.mgrsPrecision).toBe(5)
         expect(values.garsPrecision).toBe(5)
+        expect(values.tileZoom).toBe(17)
         expect(values.ringSpacing).toBe('10')
         expect(values.ringUnit).toBe('Kilometres')
       }),
@@ -106,5 +109,14 @@ describe('settings', () => {
       Command.resolve(SaveSettings, Message.FailedSaveSettings()),
       model(({ values }) => expect(values.isGridLabelsVisible).toBe(false)),
     )
+  })
+
+  test('settings saved before the tile zoom existed load with the default tile zoom', () => {
+    const { tileZoom: _tileZoom, ...olderValues } = defaultValues
+    const decoded = Schema.decodeSync(ValuesJsonString)(
+      JSON.stringify({ ...olderValues, garsPrecision: 15 }),
+    )
+    expect(decoded.tileZoom).toBe(12)
+    expect(decoded.garsPrecision).toBe(15)
   })
 })

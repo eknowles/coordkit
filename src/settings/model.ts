@@ -1,4 +1,4 @@
-import { Option, Schema } from 'effect'
+import { Effect, Option, Schema } from 'effect'
 
 import { Popover, RadioGroup } from '@foldkit/ui'
 
@@ -6,6 +6,9 @@ import { GridToggles, MapStyle, RangeRings } from '../domain'
 import { GarsPrecision } from '../systems/gars'
 import { MgrsPrecision } from '../systems/mgrs'
 import { defaultGridToggles } from '../systems/registry'
+import { TileZoom } from '../systems/tile'
+
+const DEFAULT_TILE_ZOOM = 12
 
 /** The settings the browser keeps between visits. */
 export const Values = Schema.Struct({
@@ -15,6 +18,10 @@ export const Values = Schema.Struct({
   projection: MapStyle.Projection,
   mgrsPrecision: MgrsPrecision,
   garsPrecision: GarsPrecision,
+  /** Settings saved before the tile zoom existed decode with the default. */
+  tileZoom: TileZoom.pipe(
+    Schema.withDecodingDefaultKey(Effect.succeed(DEFAULT_TILE_ZOOM)),
+  ),
   isRangeRingsVisible: Schema.Boolean,
   ringSpacing: RangeRings.RingSpacing,
   ringUnit: RangeRings.RingUnit,
@@ -28,6 +35,7 @@ export const defaultValues: Values = {
   projection: 'Mercator',
   mgrsPrecision: 0,
   garsPrecision: 30,
+  tileZoom: DEFAULT_TILE_ZOOM,
   isRangeRingsVisible: true,
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',

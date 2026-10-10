@@ -9,6 +9,7 @@ import type { MapStyle, RangeRings } from '../domain'
 import type { GarsPrecision } from '../systems/gars'
 import type { MgrsPrecision } from '../systems/mgrs'
 import { grids, isGridEnabled } from '../systems/registry'
+import { TileZoom } from '../systems/tile'
 import * as Icon from '../ui/icon'
 import * as Select from '../ui/select'
 import * as Swatch from '../ui/swatch'
@@ -111,6 +112,13 @@ const garsPrecisionOptions: Array.NonEmptyReadonlyArray<
   { value: 15, label: '15′ quadrant' },
   { value: 30, label: '30′ cell' },
 ]
+
+const tileZoomOptions: Array.NonEmptyReadonlyArray<
+  Select.SelectOption<TileZoom>
+> = Array.map(TileZoom.literals, zoom => ({
+  value: zoom,
+  label: `Zoom ${zoom}`,
+}))
 
 const ringSpacingOptions: Array.NonEmptyReadonlyArray<
   Select.SelectOption<RangeRings.RingSpacing>
@@ -236,6 +244,16 @@ const precisionSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
         },
         h,
       ),
+      Select.view(
+        {
+          id: 'tile-zoom',
+          label: 'Map tile',
+          current: model.values.tileZoom,
+          options: tileZoomOptions,
+          toMessage: zoom => Message.SelectedTileZoom({ zoom }),
+        },
+        h,
+      ),
     ],
     h,
   )
@@ -285,7 +303,7 @@ export const menuView = Submodel.defineView<Model, Message>((model, h) =>
       ariaLabel: 'Map settings',
       toView: ({ button, panel, backdrop, isVisible }) =>
         h.div(
-          [h.Class('relative shrink-0 xl:order-last')],
+          [h.Class('relative shrink-0 2xl:order-last')],
           [
             h.button(
               [

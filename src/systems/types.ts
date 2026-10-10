@@ -8,10 +8,12 @@ import type { LatLon } from '../geo/ellipsoid'
 import type { Box, GridGeometry, Position, RGBA } from '../geo/geometry'
 import type { GarsPrecision } from './gars/precision'
 import type { MgrsPrecision } from './mgrs/precision'
+import type { TileZoom } from './tile/precision'
 
 export type SystemOptions = Readonly<{
   mgrsPrecision: MgrsPrecision
   garsPrecision: GarsPrecision
+  tileZoom: TileZoom
 }>
 
 /** A position in one system: two display lines and the text to copy. */
