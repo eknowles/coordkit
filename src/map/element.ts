@@ -27,6 +27,7 @@ const DEFAULT_CAMERA: Camera.Camera = {
   pitch: 0,
 }
 
+const MAP_CURSOR = 'crosshair'
 const FLIGHT_DURATION_MS = 1200
 const FLIGHT_MIN_ZOOM = 12
 const FIT_PADDING = 120
@@ -142,7 +143,12 @@ export class CoordkitMapElement extends HTMLElement {
       'top-right',
     )
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'top-right')
-    const overlay = new MapboxOverlay({ interleaved: true, layers: [] })
+    // NOTE: deck.gl writes its cursor onto the map canvas, over the CSS crosshair in styles.css.
+    const overlay = new MapboxOverlay({
+      interleaved: true,
+      layers: [],
+      getCursor: () => MAP_CURSOR,
+    })
     map.addControl(overlay)
     // NOTE: the map starts where these properties say, so the first sync must not move it again.
     this.#applied = {

@@ -16,6 +16,7 @@ const fake = vi.hoisted(() => {
     fitBounds: vi.fn(),
     remove: vi.fn(),
     setProps: vi.fn(),
+    overlayCreated: vi.fn(),
   }
   return {
     handlers,
@@ -101,6 +102,9 @@ vi.mock('maplibre-gl', () => {
 
 vi.mock('@deck.gl/mapbox', () => ({
   MapboxOverlay: class {
+    constructor(props: unknown) {
+      fake.map.overlayCreated(props)
+    }
     setProps(props: unknown) {
       fake.map.setProps(props)
     }
@@ -206,6 +210,14 @@ describe('<coordkit-map>', () => {
     expect(events.map(({ name }) => name)).not.toContain('map-ready')
     fake.emit('load')
     expect(events.at(-1)).toEqual({ name: 'map-ready', detail: {} })
+  })
+
+  test('keeps the crosshair cursor that deck.gl would replace with a grab hand', () => {
+    mountElement()
+    const props = fake.map.overlayCreated.mock.lastCall![0]
+    expect(props.getCursor({ isDragging: true, isHovering: false })).toBe(
+      'crosshair',
+    )
   })
 
   test('starts at the whole world without a camera', () => {
