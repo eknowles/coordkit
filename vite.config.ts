@@ -63,21 +63,26 @@ export default defineConfig({
         // NOTE: the coverage report and badges are published beside the app; let them load as pages.
         navigateFallbackDenylist: [/\/coverage\//, /\/badges\//],
         cleanupOutdatedCaches: true,
+        // NOTE: Workbox copies each urlPattern into the service worker as source text, so a
+        // matcher must not refer to anything outside itself, such as a shared constant.
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
             handler: 'CacheFirst',
             options: cacheAsViewed('fonts', 60, 365),
           },
+          // NOTE: OpenFreeMap's styles and its `/planet` TileJSON name the current tile build, so
+          // they revalidate; the tile, glyph and sprite URLs under a build never change.
           {
             urlPattern: ({ url }) =>
-              url.hostname.endsWith('cartocdn.com') &&
-              url.pathname.endsWith('.json'),
+              url.hostname === 'tiles.openfreemap.org' &&
+              (url.pathname.startsWith('/styles/') ||
+                url.pathname === '/planet'),
             handler: 'StaleWhileRevalidate',
             options: cacheAsViewed('map-styles', 50, 30),
           },
           {
-            urlPattern: ({ url }) => url.hostname.endsWith('cartocdn.com'),
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org',
             handler: 'CacheFirst',
             options: cacheAsViewed('map-tiles', 4000, 30),
           },

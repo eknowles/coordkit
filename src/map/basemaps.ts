@@ -3,9 +3,10 @@ import type { StyleSpecification } from 'maplibre-gl'
 import type { MapStyle } from '../domain'
 import type { MapTone } from '../systems/types'
 
-/** Carto serves the glyphs for every base map, so grid labels can use one font on all of them. */
-export const GLYPHS_URL =
-  'https://tiles.basemaps.cartocdn.com/fonts/{fontstack}/{range}.pbf'
+const OPENFREEMAP_URL = 'https://tiles.openfreemap.org'
+
+/** OpenFreeMap serves the glyphs for every base map, so grid labels can use one font on all of them. */
+export const GLYPHS_URL = `${OPENFREEMAP_URL}/fonts/{fontstack}/{range}.pbf`
 
 const satelliteStyle: StyleSpecification = {
   version: 8,
@@ -35,7 +36,7 @@ export const basemapStyles: Record<
   MapStyle.Basemap,
   string | StyleSpecification
 > = {
-  Dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  Light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  Dark: `${OPENFREEMAP_URL}/styles/dark`,
+  Light: `${OPENFREEMAP_URL}/styles/positron`,
   Satellite: satelliteStyle,
 }

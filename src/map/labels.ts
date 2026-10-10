@@ -25,7 +25,7 @@ const addLabelLayer = (map: MapInstance): void => {
     source: LABEL_SOURCE_ID,
     layout: {
       'text-field': ['get', 'text'],
-      'text-font': ['Open Sans Bold'],
+      'text-font': ['Noto Sans Bold'],
       'text-size': ['get', 'size'],
       'text-allow-overlap': false,
       'text-padding': 1,
