@@ -127,6 +127,8 @@ export const SaveSettings = Command.define('SaveSettings', {
   messages: [Message.SucceededSaveSettings, Message.FailedSaveSettings],
   execute: ({ values }) =>
     Effect.gen(function* () {
+      // NOTE: KeyValueStore is marked unstable in Effect 4; Foldkit's examples use it for localStorage too.
+      // @effect-diagnostics-next-line unstableApiUsage:off
       const store = yield* KeyValueStore.KeyValueStore
       const encoded = yield* Schema.encodeEffect(ValuesJsonString)(values)
       yield* store.set(STORAGE_KEY, encoded)

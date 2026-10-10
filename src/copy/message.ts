@@ -5,11 +5,11 @@ import { defineMessageUnion } from 'foldkit/message'
 
 export const Message = defineMessageUnion({
   ClickedCopy: { cellId: Schema.String, text: Schema.String },
-  SucceededCopyText: { cellId: Schema.String, copyId: Schema.Number },
-  FailedCopyText: { cellId: Schema.String, copyId: Schema.Number },
+  SucceededCopyText: { cellId: Schema.String, copyId: Schema.Int },
+  FailedCopyText: { cellId: Schema.String, copyId: Schema.Int },
   CompletedWaitBeforeHidingCopyFeedback: {
     cellId: Schema.String,
-    copyId: Schema.Number,
+    copyId: Schema.Int,
   },
 })
 export type Message = typeof Message.Type

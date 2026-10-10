@@ -12,9 +12,9 @@ import { LatLon, clampToWorld } from './latLon'
 /** Where the map is looking. Bounds are derived by the map from these and its size. */
 export const Camera = Schema.Struct({
   center: LatLon,
-  zoom: Schema.Number,
-  bearing: Schema.Number,
-  pitch: Schema.Number,
+  zoom: Schema.Finite,
+  bearing: Schema.Finite,
+  pitch: Schema.Finite,
 })
 export type Camera = typeof Camera.Type
 

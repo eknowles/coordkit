@@ -4,7 +4,7 @@ import type * as Geo from '../geo/ellipsoid'
 import { wrapLon } from '../geo/ellipsoid'
 
 /** A WGS84 position. The maths layer (src/geo) declares the same shape without Effect. */
-export const LatLon = Schema.Struct({ lat: Schema.Number, lon: Schema.Number })
+export const LatLon = Schema.Struct({ lat: Schema.Finite, lon: Schema.Finite })
 export type LatLon = typeof LatLon.Type
 
 // NOTE: compile-time check that this Schema and the maths layer's LatLon stay the same shape.

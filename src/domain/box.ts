@@ -4,10 +4,10 @@ import type * as Geometry from '../geo/geometry'
 
 /** An area as [west, south, east, north] in degrees, the same tuple the grids use. */
 export const Box = Schema.Tuple([
-  Schema.Number,
-  Schema.Number,
-  Schema.Number,
-  Schema.Number,
+  Schema.Finite,
+  Schema.Finite,
+  Schema.Finite,
+  Schema.Finite,
 ])
 export type Box = typeof Box.Type
 

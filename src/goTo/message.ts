@@ -10,11 +10,11 @@ export const Message = defineMessageUnion({
   SubmittedSearch: {},
   ClickedFindMyLocation: {},
   SucceededGetCurrentPosition: {
-    requestId: Schema.Number,
+    requestId: Schema.Int,
     point: LatLon.LatLon,
   },
   FailedGetCurrentPosition: {
-    requestId: Schema.Number,
+    requestId: Schema.Int,
     reason: Schema.String,
   },
 })

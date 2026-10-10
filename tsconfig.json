@@ -1,4 +1,5 @@
 {
+  "$schema": "./node_modules/@effect/tsgo/schema.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
@@ -11,7 +12,15 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnosticSeverity": {
+          "catchToOrElseSucceed": "off"
+        }
+      }
+    ]
   },
   "include": ["src/**/*", "vite.config.ts", "vitest.config.ts"]
 }

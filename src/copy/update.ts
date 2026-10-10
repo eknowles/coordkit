@@ -1,4 +1,4 @@
-import { Duration, Effect, HashMap, Option, Schema } from 'effect'
+import { Data, Duration, Effect, HashMap, Option, Schema } from 'effect'
 import { Command, type Update } from 'foldkit'
 import { modifyFields } from 'foldkit/struct'
 
@@ -52,13 +52,17 @@ export const update = (model: Model, message: Message) =>
 
 // COMMAND
 
+class ClipboardRefusedError extends Data.TaggedError('ClipboardRefusedError')<{
+  readonly cause: unknown
+}> {}
+
 export const CopyText = Command.define('CopyText', {
-  args: { cellId: Schema.String, text: Schema.String, copyId: Schema.Number },
+  args: { cellId: Schema.String, text: Schema.String, copyId: Schema.Int },
   messages: [Message.SucceededCopyText, Message.FailedCopyText],
   execute: ({ cellId, text, copyId }) =>
     Effect.tryPromise({
       try: () => navigator.clipboard.writeText(text),
-      catch: () => new Error('The clipboard refused the text.'),
+      catch: cause => new ClipboardRefusedError({ cause }),
     }).pipe(
       Effect.as(Message.SucceededCopyText({ cellId, copyId })),
       Effect.catch(() =>
@@ -72,7 +76,7 @@ const COPY_FEEDBACK_DURATION = Duration.millis(1200)
 export const WaitBeforeHidingCopyFeedback = Command.define(
   'WaitBeforeHidingCopyFeedback',
   {
-    args: { cellId: Schema.String, copyId: Schema.Number },
+    args: { cellId: Schema.String, copyId: Schema.Int },
     messages: [Message.CompletedWaitBeforeHidingCopyFeedback],
     execute: ({ cellId, copyId }) =>
       Effect.sleep(COPY_FEEDBACK_DURATION).pipe(

@@ -9,7 +9,7 @@ export const Status = defineTaggedUnion({
   Idle: {},
   Found: { kind: Schema.String },
   SearchFailed: { reason: Schema.String },
-  Locating: { requestId: Schema.Number },
+  Locating: { requestId: Schema.Int },
   LocateFailed: { reason: Schema.String },
 })
 export type Status = typeof Status.Type
@@ -18,7 +18,7 @@ export type Status = typeof Status.Type
 export const Model = Schema.Struct({
   query: Schema.String,
   status: Status,
-  locateRequestCount: Schema.Number,
+  locateRequestCount: Schema.Int,
 })
 export type Model = typeof Model.Type
 

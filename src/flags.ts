@@ -10,6 +10,8 @@ import { readCamera, readCueQuery } from './url'
 
 /** Saved settings that are missing, unreadable or an older shape fall back to the defaults. */
 const loadSettings = Effect.gen(function* () {
+  // NOTE: KeyValueStore is marked unstable in Effect 4; Foldkit's examples use it for localStorage too.
+  // @effect-diagnostics-next-line unstableApiUsage:off
   const store = yield* KeyValueStore.KeyValueStore
   const json = yield* Effect.fromOption(
     Option.fromNullishOr(yield* store.get(Settings.STORAGE_KEY)),

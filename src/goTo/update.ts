@@ -1,4 +1,4 @@
-import { Duration, Effect, Option, Schema, String } from 'effect'
+import { Data, Duration, Effect, Option, Schema, String } from 'effect'
 import { Command, type Update } from 'foldkit'
 import { modifyFields } from 'foldkit/struct'
 
@@ -95,6 +95,10 @@ export const clearStatus = (model: Model): Update.Return<Model, Message> => ({
 
 // COMMAND
 
+class GeolocationError extends Data.TaggedError('GeolocationError')<{
+  readonly reason: string
+}> {}
+
 const LOCATION_TIMEOUT = Duration.seconds(10)
 const LOCATION_MAX_AGE = Duration.seconds(30)
 
@@ -110,22 +114,31 @@ const locationErrorText = (error: GeolocationPositionError): string => {
 
 /** Ask the browser for the device position. The browser asks the user for permission the first time. */
 export const GetCurrentPosition = Command.define('GetCurrentPosition', {
-  args: { requestId: Schema.Number },
+  args: { requestId: Schema.Int },
   messages: [
     Message.SucceededGetCurrentPosition,
     Message.FailedGetCurrentPosition,
   ],
   execute: ({ requestId }) =>
-    Effect.callback<GeolocationPosition, Error>(resume => {
+    Effect.callback<GeolocationPosition, GeolocationError>(resume => {
       if (typeof navigator === 'undefined' || !navigator.geolocation) {
         resume(
-          Effect.fail(new Error('This browser cannot share its location.')),
+          Effect.fail(
+            new GeolocationError({
+              reason: 'This browser cannot share its location.',
+            }),
+          ),
         )
         return
       }
       navigator.geolocation.getCurrentPosition(
         position => resume(Effect.succeed(position)),
-        error => resume(Effect.fail(new Error(locationErrorText(error)))),
+        error =>
+          resume(
+            Effect.fail(
+              new GeolocationError({ reason: locationErrorText(error) }),
+            ),
+          ),
         {
           enableHighAccuracy: true,
           timeout: Duration.toMillis(LOCATION_TIMEOUT),
@@ -146,7 +159,7 @@ export const GetCurrentPosition = Command.define('GetCurrentPosition', {
         Effect.succeed(
           Message.FailedGetCurrentPosition({
             requestId,
-            reason: error.message,
+            reason: error.reason,
           }),
         ),
       ),
