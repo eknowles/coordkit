@@ -26,6 +26,14 @@ describe('web map tiles', () => {
     expect(toTile({ lat: -89, lon: -180 }, 3)).toEqual({ z: 3, x: 0, y: 7 })
   })
 
+  test('a longitude a hair below 180 stays in the easternmost column', () => {
+    expect(toTile({ lat: 0, lon: 179.99999999999994 }, 1)).toEqual({
+      z: 1,
+      x: 1,
+      y: 1,
+    })
+  })
+
   test('the tile cell contains the point', () => {
     const cell = tileCell(toTile(london, 15))
     expect(london.lat).toBeGreaterThan(cell.south)

@@ -3,8 +3,14 @@ import { type LatLon, isValidLatLon } from '../../geo/ellipsoid'
 
 export type AngleKind = 'DD' | 'DMS' | 'DDM'
 
+/** A value to fixed decimals, without the minus sign when it rounds to zero ("-0.000000"). */
+export function toFixedUnsignedZero(value: number, digits: number): string {
+  const rounded = value.toFixed(digits)
+  return Number(rounded) === 0 ? (0).toFixed(digits) : rounded
+}
+
 export function formatDD({ lat, lon }: LatLon, digits = 6): string {
-  return `${lat.toFixed(digits)}, ${lon.toFixed(digits)}`
+  return `${toFixedUnsignedZero(lat, digits)}, ${toFixedUnsignedZero(lon, digits)}`
 }
 
 function splitDMS(value: number, secDigits: number): [number, number, number] {
@@ -23,9 +29,11 @@ function splitDMS(value: number, secDigits: number): [number, number, number] {
   return [d, m, s]
 }
 
-function hemi(value: number, axis: 'lat' | 'lon'): string {
-  if (axis === 'lat') return value < 0 ? 'S' : 'N'
-  return value < 0 ? 'W' : 'E'
+/** The hemisphere letter. A value that rounds to zero is N or E, so the text reads back the same. */
+function hemi(value: number, axis: 'lat' | 'lon', isZero: boolean): string {
+  const isNegative = value < 0 && !isZero
+  if (axis === 'lat') return isNegative ? 'S' : 'N'
+  return isNegative ? 'W' : 'E'
 }
 
 export function formatDMSValue(
@@ -36,7 +44,8 @@ export function formatDMSValue(
   const [d, m, s] = splitDMS(value, secDigits)
   const pad = axis === 'lat' ? 2 : 3
   const sStr = s.toFixed(secDigits).padStart(secDigits ? secDigits + 3 : 2, '0')
-  return `${String(d).padStart(pad, '0')}° ${String(m).padStart(2, '0')}′ ${sStr}″ ${hemi(value, axis)}`
+  const isZero = d === 0 && m === 0 && s === 0
+  return `${String(d).padStart(pad, '0')}° ${String(m).padStart(2, '0')}′ ${sStr}″ ${hemi(value, axis, isZero)}`
 }
 
 export function formatDMS(p: LatLon, secDigits = 2): string {
@@ -56,7 +65,8 @@ export function formatDDMValue(
     d += 1
   }
   const pad = axis === 'lat' ? 2 : 3
-  return `${String(d).padStart(pad, '0')}° ${m.toFixed(minDigits).padStart(minDigits + 3, '0')}′ ${hemi(value, axis)}`
+  const isZero = d === 0 && m === 0
+  return `${String(d).padStart(pad, '0')}° ${m.toFixed(minDigits).padStart(minDigits + 3, '0')}′ ${hemi(value, axis, isZero)}`
 }
 
 export function formatDDM(p: LatLon, minDigits = 4): string {

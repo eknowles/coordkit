@@ -3,7 +3,7 @@
  * x from 180°W and y from the north edge, as OpenStreetMap, MapLibre and most tile servers
  * use. A quadkey (Bing Maps) writes the same tile as one base-4 digit per zoom level.
  */
-import type { LatLon } from '../../geo/ellipsoid'
+import { type LatLon, wrapLon } from '../../geo/ellipsoid'
 
 /** Web Mercator stops here, so the tile grid is square. */
 export const MAX_TILE_LATITUDE = 85.0511287798066
@@ -31,7 +31,7 @@ export function toTile({ lat, lon }: LatLon, z: number): Tile {
     Math.min(MAX_TILE_LATITUDE, lat),
   )
   const latRadians = (clampedLat * Math.PI) / 180
-  const wrappedLon = ((((lon + 180) % 360) + 360) % 360) - 180
+  const wrappedLon = wrapLon(lon)
   const x = Math.floor(((wrappedLon + 180) / 360) * count)
   const y = Math.floor(
     ((1 - Math.log(Math.tan(latRadians) + 1 / Math.cos(latRadians)) / Math.PI) /

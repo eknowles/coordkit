@@ -28,6 +28,8 @@ subtree_prompted: true
 1. Create `src/systems/<name>/` with the maths in `<name>.ts`, tests beside it, and an `index.ts` that exports whichever capabilities the system has: a `Formatter` (readout column), a `Parser` (search) and a `Grid` (map overlay, optional cue outline). The interfaces are in `src/systems/types.ts`.
 2. Add each export to the matching list in `src/systems/registry.ts`. Order matters: formatters are columns left to right, parsers are tried in order, and later grids draw on top.
 
+3. Add the formatter to `expectations` in `src/systems/roundTrip.test.ts` (or to `READOUT_ONLY` if search cannot read it). That property test formats thousands of random points, including poles, the antimeridian, cell edges and UTM zone edges. It checks that the search reads each reading back, that the cell contains the point (or the point is within the reading's precision), and that formatting the parsed point gives the same text. Set `ROUND_TRIP_RUNS=50000` to search harder.
+
 Nothing outside `src/systems/` names a system. `registry.test.ts` checks every formatter and parser against shared expectations.
 
 ### Other notes

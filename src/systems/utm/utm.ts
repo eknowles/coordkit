@@ -60,7 +60,10 @@ export interface Ups {
 export function latBand(lat: number): string | null {
   if (lat < -80 || lat > 84) return null
   const i = Math.min(19, Math.floor((lat + 80) / 8))
-  return LAT_BANDS[i]!
+  // NOTE: lat + 80 rounds a latitude a hair below 0 up to band N, whose northing is northern.
+  // The band must agree with the hemisphere, or the reading names a point 10,000 km away.
+  const southernBand = Math.floor(LAT_BANDS.length / 2) - 1
+  return LAT_BANDS[lat < 0 ? Math.min(i, southernBand) : i]!
 }
 
 /** Southern latitude of a band letter. */

@@ -3,7 +3,12 @@ import { Option } from 'effect'
 import { makeParser } from '../parser'
 import { pairReading } from '../reading'
 import type { Formatter, Parser } from '../types'
-import { formatDDMValue, formatDMSValue, parseLatLon } from './angles'
+import {
+  formatDDMValue,
+  formatDMSValue,
+  parseLatLon,
+  toFixedUnsignedZero,
+} from './angles'
 
 const GRATICULE = Option.some('Graticule')
 
@@ -11,7 +16,11 @@ export const ddFormatter: Formatter = {
   id: 'DD',
   label: 'DD',
   maybeGridId: GRATICULE,
-  format: point => pairReading(point.lat.toFixed(6), point.lon.toFixed(6)),
+  format: point =>
+    pairReading(
+      toFixedUnsignedZero(point.lat, 6),
+      toFixedUnsignedZero(point.lon, 6),
+    ),
 }
 
 export const dmsFormatter: Formatter = {

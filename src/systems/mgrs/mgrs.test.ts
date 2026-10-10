@@ -82,3 +82,25 @@ describe('MGRS square outline', () => {
     expect(mgrsSquareOutline('not mgrs')).toBeNull()
   })
 })
+
+describe('MGRS edge cases', () => {
+  test('the poles have valid square letters', () => {
+    expect(toMgrs({ lat: 90, lon: -20 }, 0)).toBe('ZAH')
+    expect(toMgrs({ lat: -90, lon: 10 }, 0)).toMatch(/^B[A-Z]{2}$/)
+  })
+
+  test('a position just below a 100 km line never gets digits from the next square', () => {
+    const reference = toMgrs({ lat: 89.9999999999991, lon: 0 }, 3)
+    expect(reference).toMatch(/^Z[A-Z]{2}\d{6}$/)
+    expect(toMgrs({ lat: -8.41434211054512e-15, lon: 0 }, 3)).toMatch(
+      /^31[A-Z]{3}\d{6}$/,
+    )
+  })
+
+  test('reads a square that straddles its latitude band edge', () => {
+    expect(fromMgrs('31XCV').center.lat).toBeCloseTo(
+      mgrsRef.toPoint('31XCV')[1],
+      0,
+    )
+  })
+})

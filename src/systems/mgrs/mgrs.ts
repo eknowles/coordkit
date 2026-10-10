@@ -42,10 +42,19 @@ export function utmSquareId(
   return col + ROW_LETTERS[rowIdx]!
 }
 
-function truncDigits(value: number, precision: MgrsPrecision): string {
+/**
+ * Truncate to whole metres, allowing for float error just below a whole metre. The square
+ * letters and the digits both come from this value, so 99,999.9999 m cannot give the digits of
+ * the next square inside the letters of this one.
+ */
+function toWholeMetres(value: number): number {
+  return Math.floor(value + 1e-6)
+}
+
+/** Truncate (never round) whole metres to the requested resolution, as MGRS requires. */
+function truncDigits(metres: number, precision: MgrsPrecision): string {
   if (precision === 0) return ''
-  // Truncate (never round) to the requested resolution, as MGRS requires.
-  const v = Math.floor((value % 100_000) / Math.pow(10, 5 - precision) + 1e-9)
+  const v = Math.floor((metres % 100_000) / Math.pow(10, 5 - precision))
   return String(v).padStart(precision, '0')
 }
 
@@ -55,28 +64,34 @@ export function toMgrsParts(
 ): MgrsParts {
   if (p.lat > 84 || p.lat < -80) {
     const ups = toUps(p)
-    const west = p.lon < 0
+    const easting = toWholeMetres(ups.easting)
+    const northing = toWholeMetres(ups.northing)
+    // The polar zones split at easting 2,000,000 (the 0° and 180° meridians). Deciding by the
+    // longitude's sign puts the pole itself, at exactly 2,000,000, past the west letter table.
+    const west = easting < 2_000_000
     const band = ups.hemisphere === 'N' ? (west ? 'Y' : 'Z') : west ? 'A' : 'B'
     const fe = west ? 800_000 : 2_000_000
     const fn = ups.hemisphere === 'N' ? 1_300_000 : 800_000
     const cols = west ? UPS_COLS_WEST : UPS_COLS_EAST
-    const col = cols[Math.floor((ups.easting - fe) / 100_000)] ?? '?'
-    const row = UPS_ROWS[Math.floor((ups.northing - fn) / 100_000)] ?? '?'
+    const col = cols[Math.floor((easting - fe) / 100_000)] ?? '?'
+    const row = UPS_ROWS[Math.floor((northing - fn) / 100_000)] ?? '?'
     return {
       zone: null,
       band,
       square: col + row,
-      easting: truncDigits(ups.easting, precision),
-      northing: truncDigits(ups.northing, precision),
+      easting: truncDigits(easting, precision),
+      northing: truncDigits(northing, precision),
     }
   }
   const u = toUtm(p)
+  const easting = toWholeMetres(u.easting)
+  const northing = toWholeMetres(u.northing)
   return {
     zone: u.zone,
     band: u.band,
-    square: utmSquareId(u.zone, u.easting, u.northing),
-    easting: truncDigits(u.easting, precision),
-    northing: truncDigits(u.northing, precision),
+    square: utmSquareId(u.zone, easting, northing),
+    easting: truncDigits(easting, precision),
+    northing: truncDigits(northing, precision),
   }
 }
 
@@ -125,6 +140,13 @@ export function fromMgrs(input: string): MgrsDecoded {
     decodeAt(zoneStr, band, sq, e100 + de, n100 + dn)
   return { sw: at(0, 0), center: at(size / 2, size / 2), size }
 }
+
+/**
+ * How far outside its latitude band a decoded point may fall. A 100 km square can start about
+ * 0.9° beyond the band it is named for, so "31X CV" at 72°N has its corner in band W. The row
+ * letters repeat every 2,000 km (about 18°), so this margin cannot pick the wrong cycle.
+ */
+const BAND_TOLERANCE_DEGREES = 1.5
 
 function decodeAt(
   zoneStr: string | undefined,
@@ -181,7 +203,10 @@ function decodeAt(
   while (northing < bandMin - 100_000) northing += 2_000_000
 
   const p = fromUtm(zone, hemisphere, easting, northing)
-  if (p.lat < south - 0.5 || p.lat > bandNorth(band) + 0.5) {
+  if (
+    p.lat < south - BAND_TOLERANCE_DEGREES ||
+    p.lat > bandNorth(band) + BAND_TOLERANCE_DEGREES
+  ) {
     throw new Error(`Square ${sq} does not fall in band ${band}`)
   }
   return p

@@ -17,8 +17,13 @@ const GRID_COLUMNS = 4
 const MAX_LATITUDE = 90
 const MAX_LONGITUDE = 180
 
+// NOTE: in-range longitudes pass through untouched. The modulo form rounds 179.99999999999994
+// up to 180 and wraps it to -180. Unlike geo's wrapLon, 180 itself becomes -180, as in
+// Google's reference implementation.
 const wrapLon = (lon: number) =>
-  ((((lon + MAX_LONGITUDE) % 360) + 360) % 360) - MAX_LONGITUDE
+  lon >= -MAX_LONGITUDE && lon < MAX_LONGITUDE
+    ? lon
+    : ((((lon + MAX_LONGITUDE) % 360) + 360) % 360) - MAX_LONGITUDE
 
 export interface PlusCodeCell {
   west: number
@@ -47,14 +52,23 @@ function normalise({ lat, lon }: LatLon, length: number): LatLon {
   }
 }
 
+/** The first pair covers 180° of latitude and 360° of longitude in 20° steps. */
+const FIRST_PAIR_LAT_DIGITS = 9
+const FIRST_PAIR_LON_DIGITS = 18
+
+// NOTE: near 180° longitude, the division below can round 17.999... up to 18, which is not a
+// valid first digit. The npm open-location-code 1.0.3 package has the same bug; the cap keeps
+// the point in the easternmost cell.
 function encodePairs({ lat, lon }: LatLon, pairCount: number): string {
   let latValue = lat + MAX_LATITUDE
   let lonValue = lon + MAX_LONGITUDE
   let digits = ''
   for (let pair = 0; pair < pairCount; pair++) {
     const resolution = PAIR_RESOLUTIONS[pair]!
-    const latIndex = Math.min(BASE - 1, Math.floor(latValue / resolution))
-    const lonIndex = Math.min(BASE - 1, Math.floor(lonValue / resolution))
+    const latLimit = pair === 0 ? FIRST_PAIR_LAT_DIGITS : BASE
+    const lonLimit = pair === 0 ? FIRST_PAIR_LON_DIGITS : BASE
+    const latIndex = Math.min(latLimit - 1, Math.floor(latValue / resolution))
+    const lonIndex = Math.min(lonLimit - 1, Math.floor(lonValue / resolution))
     digits += ALPHABET.charAt(latIndex) + ALPHABET.charAt(lonIndex)
     latValue -= latIndex * resolution
     lonValue -= lonIndex * resolution

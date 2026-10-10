@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 
 import { points } from '../../test/points'
 import { GZD_CELLS, gzdGrid } from './gzd'
-import { fromUps, fromUtm, toUps, toUtm, utmZone } from './utm'
+import { fromUps, fromUtm, latBand, toUps, toUtm, utmZone } from './utm'
 
 describe('UTM', () => {
   test('matches proj4 to the millimetre', () => {
@@ -68,4 +68,10 @@ describe('GZD grid', () => {
     expect(texts).toContain('30U')
     expect(texts).toContain('31U')
   })
+})
+
+test('a latitude a hair below the equator is in band M, the southern band', () => {
+  expect(latBand(-8.41434211054512e-15)).toBe('M')
+  expect(latBand(-5e-324)).toBe('M')
+  expect(latBand(0)).toBe('N')
 })

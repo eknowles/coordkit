@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { formatDDM, formatDMS, parseLatLon } from './angles'
+import { formatDD, formatDDM, formatDMS, parseLatLon } from './angles'
 
 describe('formatting', () => {
   test('DMS and DDM', () => {
@@ -43,5 +43,17 @@ describe('parseLatLon', () => {
     expect(parseLatLon('91, 0')).toBeNull()
     expect(parseLatLon('51 61 N, 0 W')).toBeNull()
     expect(parseLatLon('hello')).toBeNull()
+  })
+})
+
+describe('values that round to zero', () => {
+  test('have no minus sign and read as north and east', () => {
+    expect(formatDD({ lat: -1e-10, lon: -5e-324 })).toBe('0.000000, 0.000000')
+    expect(formatDMS({ lat: -90, lon: -0.000001 })).toBe(
+      '90° 00′ 00.00″ S, 000° 00′ 00.00″ E',
+    )
+    expect(formatDDM({ lat: -1e-9, lon: -1e-9 })).toBe(
+      '00° 00.0000′ N, 000° 00.0000′ E',
+    )
   })
 })

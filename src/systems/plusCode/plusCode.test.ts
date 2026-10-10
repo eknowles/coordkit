@@ -55,6 +55,12 @@ describe('Plus Codes', () => {
     }
   })
 
+  test('a longitude a hair below 180 gives a valid code in the easternmost cell', () => {
+    const code = toPlusCode({ lat: -90, lon: 179.99999999999997 })
+    expect(isFullPlusCode(code)).toBe(true)
+    expect(fromPlusCode(code).east).toBeCloseTo(180, 9)
+  })
+
   test('the grid refines with zoom and labels its cells', () => {
     expect(plusCodePairs(1)).toBe(1)
     expect(plusCodePairs(14)).toBe(3)
