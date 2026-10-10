@@ -30,6 +30,7 @@ export const RenderOverlay = Command.define('RenderOverlay', {
     maybeCue: Schema.Option(LatLon),
     mgrsPrecision: MgrsPrecision,
     garsPrecision: GarsPrecision,
+    showRings: Schema.Boolean,
     ringSpacing: RingSpacing,
     ringUnit: RingUnit,
     basemap: Basemap,

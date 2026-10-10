@@ -33,6 +33,7 @@ describe('map Commands', () => {
         maybeCue: Option.some({ lat: 51.5, lon: 0 }),
         mgrsPrecision: 3,
         garsPrecision: 5,
+        showRings: true,
         ringSpacing: 'Auto',
         ringUnit: 'NauticalMiles',
         basemap: 'Dark',

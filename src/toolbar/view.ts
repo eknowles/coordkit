@@ -1,10 +1,11 @@
+import clsx from 'clsx'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import type { Message } from '../app/message'
+import { Message } from '../app/message'
 import type { Model } from '../app/model'
 import { githubIconView, settingsIconView } from '../ui/icons'
-import { gridTogglesView } from './grids'
-import { mapSettingsView, ringSpacingView } from './options'
+import { gridTogglesView, toggleView } from './grids'
+import { mapSettingsView } from './options'
 import { searchView } from './search'
 
 export const REPOSITORY_URL = 'https://github.com/eknowles/coordkit'
@@ -51,6 +52,19 @@ const settingsPopoverView = (model: Model, h: HtmlBuilder<Message>): Html =>
     [mapSettingsView(model.settings, h)],
   )
 
+const ringsToggleView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  toggleView(
+    'Rings',
+    'Range rings around the cue (spacing and unit in Map settings)',
+    model.settings.showRings,
+    Message.ToggledRings(),
+    h.span([
+      h.Class(clsx('inline-block h-2 w-2 shrink-0 rounded-full border-2 border-cue', !model.settings.showRings && 'opacity-30')),
+      h.AriaHidden(true),
+    ]),
+    h,
+  )
+
 /**
  * Wide screens: one row. Narrower screens: brand, search and the icon buttons on top, then the
  * grid toggles in a strip that scrolls sideways. The two wrappers dissolve (`xl:contents`) on
@@ -79,7 +93,7 @@ export const toolbarView = (model: Model, h: HtmlBuilder<Message>): Html =>
             '-mx-3 flex items-center gap-3 overflow-x-auto px-3 [scrollbar-width:none] xl:contents [&::-webkit-scrollbar]:hidden',
           ),
         ],
-        [gridTogglesView(model.settings, h), dividerView(h), ringSpacingView(model.settings, h)],
+        [gridTogglesView(model.settings, h), dividerView(h), ringsToggleView(model, h)],
       ),
       settingsPopoverView(model, h),
     ],

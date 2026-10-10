@@ -1,4 +1,3 @@
-import { Option } from 'effect'
 import { describe, expect, test } from 'vitest'
 
 import { destination } from '../geo/geodesic'
@@ -7,9 +6,9 @@ import { RING_COUNT, autoStep, buildRings, ringLabelText, ringStep } from './rin
 const viewOf = (south: number, north: number) => ({ bounds: { west: -1, south, east: 1, north }, zoom: 8 })
 
 describe('ringStep', () => {
-  test('Off draws no rings and a fixed spacing is used as given', () => {
-    expect(ringStep('Off', viewOf(50, 52), 'NauticalMiles')).toEqual(Option.none())
-    expect(ringStep('2', viewOf(50, 52), 'NauticalMiles')).toEqual(Option.some(2))
+  test('a fixed spacing is used as given and Auto follows the view', () => {
+    expect(ringStep('2', viewOf(50, 52), 'NauticalMiles')).toBe(2)
+    expect(ringStep('Auto', viewOf(50, 52), 'NauticalMiles')).toBe(5)
   })
 
   test('Auto picks the largest 1-2-5 step that keeps every ring in view', () => {

@@ -3,11 +3,11 @@ import type { Html, HtmlBuilder } from 'foldkit/html'
 
 import type { Basemap, GarsPrecision, MgrsPrecision, Projection, RingSpacing, RingUnit, Settings } from '../app/domain'
 import { Message } from '../app/message'
+import { segmentedView } from '../ui/segmented'
 import { type SelectOption, selectView } from '../ui/select'
 
 const ringSpacingOptions: Array.NonEmptyReadonlyArray<SelectOption<RingSpacing>> = [
-  { value: 'Off', label: 'Off' },
-  { value: 'Auto', label: 'Auto' },
+  { value: 'Auto', label: 'Auto (by zoom)' },
   { value: '0.25', label: '0.25' },
   { value: '0.5', label: '0.5' },
   { value: '1', label: '1' },
@@ -18,10 +18,6 @@ const ringSpacingOptions: Array.NonEmptyReadonlyArray<SelectOption<RingSpacing>>
   { value: '50', label: '50' },
   { value: '100', label: '100' },
 ]
-
-/** Ring spacing stays in the toolbar; the unit and everything set less often is in the settings menu. */
-export const ringSpacingView = (settings: Settings, h: HtmlBuilder<Message>): Html =>
-  selectView('Rings', settings.ringSpacing, ringSpacingOptions, spacing => Message.SelectedRingSpacing({ spacing }), h)
 
 const ringUnitOptions: Array.NonEmptyReadonlyArray<SelectOption<RingUnit>> = [
   { value: 'NauticalMiles', label: 'Nautical miles' },
@@ -51,7 +47,7 @@ const basemapOptions: Array.NonEmptyReadonlyArray<SelectOption<Basemap>> = [
 
 const projectionOptions: Array.NonEmptyReadonlyArray<SelectOption<Projection>> = [
   { value: 'Globe', label: 'Globe' },
-  { value: 'Mercator', label: 'Web Mercator' },
+  { value: 'Mercator', label: 'Mercator' },
 ]
 
 const sectionView = (heading: string, rows: ReadonlyArray<Html>, h: HtmlBuilder<Message>): Html =>
@@ -60,6 +56,7 @@ const sectionView = (heading: string, rows: ReadonlyArray<Html>, h: HtmlBuilder<
     [h.h2([h.Class('text-[11px] font-medium text-muted')], [heading]), ...rows],
   )
 
+/** Settings changed less often than the toolbar controls, in the settings menu. */
 export const mapSettingsView = (settings: Settings, h: HtmlBuilder<Message>): Html =>
   h.div(
     [h.Class('grid gap-4')],
@@ -67,8 +64,8 @@ export const mapSettingsView = (settings: Settings, h: HtmlBuilder<Message>): Ht
       sectionView(
         'Map',
         [
-          selectView('Base map', settings.basemap, basemapOptions, basemap => Message.SelectedBasemap({ basemap }), h),
-          selectView(
+          segmentedView('Base map', settings.basemap, basemapOptions, basemap => Message.SelectedBasemap({ basemap }), h),
+          segmentedView(
             'Projection',
             settings.projection,
             projectionOptions,
@@ -100,7 +97,10 @@ export const mapSettingsView = (settings: Settings, h: HtmlBuilder<Message>): Ht
       ),
       sectionView(
         'Range rings',
-        [selectView('Unit', settings.ringUnit, ringUnitOptions, unit => Message.SelectedRingUnit({ unit }), h)],
+        [
+          selectView('Spacing', settings.ringSpacing, ringSpacingOptions, spacing => Message.SelectedRingSpacing({ spacing }), h),
+          selectView('Unit', settings.ringUnit, ringUnitOptions, unit => Message.SelectedRingUnit({ unit }), h),
+        ],
         h,
       ),
     ],

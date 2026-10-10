@@ -21,6 +21,7 @@ export type OverlayInput = Readonly<{
   view: MapView
   maybeCue: Option.Option<LatLon>
   options: SystemOptions
+  showRings: boolean
   ringSpacing: RingSpacing
   ringUnit: RingUnit
   basemap: Basemap
@@ -74,11 +75,11 @@ const gridLabelFeatures = (built: ReadonlyArray<BuiltGrid>, tone: MapTone): Arra
 /** Range rings belong to the cue, so they show with grid labels off and their labels outrank grid labels. */
 const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
   Option.match(
-    Option.all({ cue: input.maybeCue, step: ringStep(input.ringSpacing, input.view, input.ringUnit) }),
+    Option.filter(input.maybeCue, () => input.showRings),
     {
       onNone: () => ({ layers: [], labels: [] }),
-      onSome: ({ cue, step }) => {
-        const rings = buildRings(cue, step, input.ringUnit)
+      onSome: cue => {
+        const rings = buildRings(cue, ringStep(input.ringSpacing, input.view, input.ringUnit), input.ringUnit)
         return { layers: [ringLayer(rings)], labels: Array.map(rings, ring => labelFeature(ring.label, 0, CUE_COLOR, tone)) }
       },
     },

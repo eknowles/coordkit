@@ -34,12 +34,8 @@ export const autoStep = (view: MapView, unit: RingUnit): number => {
   return Option.getOrElse(Array.findLast(NICE_STEPS, step => step <= target), () => Array.headNonEmpty(NICE_STEPS))
 }
 
-export const ringStep = (spacing: RingSpacing, view: MapView, unit: RingUnit): Option.Option<number> => {
-  if (spacing === 'Off') {
-    return Option.none()
-  }
-  return Option.some(spacing === 'Auto' ? autoStep(view, unit) : Number(spacing))
-}
+export const ringStep = (spacing: RingSpacing, view: MapView, unit: RingUnit): number =>
+  spacing === 'Auto' ? autoStep(view, unit) : Number(spacing)
 
 /** Keep longitudes continuous around the cue so a ring that crosses the antimeridian does not jump. */
 const unwrapAround = (centre: number, lon: number): number => {

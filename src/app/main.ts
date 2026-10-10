@@ -59,6 +59,7 @@ const renderOverlay = (model: Model) =>
         maybeCue: model.maybeCue,
         mgrsPrecision: model.settings.mgrsPrecision,
         garsPrecision: model.settings.garsPrecision,
+        showRings: model.settings.showRings,
         ringSpacing: model.settings.ringSpacing,
         ringUnit: model.settings.ringUnit,
         basemap: model.settings.basemap,
@@ -173,6 +174,8 @@ export const update = (model: Model, message: Message) =>
 
     ToggledLabels: () =>
       changeSettings(model, settings => modifyFields(settings, { showLabels: isOn => !isOn })),
+
+    ToggledRings: () => changeSettings(model, settings => modifyFields(settings, { showRings: isOn => !isOn })),
 
     SelectedBasemap: ({ basemap }) => {
       const basemapChange = changeSettings(model, settings => modifyFields(settings, { basemap: () => basemap }))

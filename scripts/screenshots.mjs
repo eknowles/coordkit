@@ -4,39 +4,50 @@ import puppeteer from 'puppeteer-core'
 
 const out = process.argv[2] ?? 'docs/screenshots'
 const base = process.env.COORDKIT_URL ?? 'http://localhost:4173/'
+/** The app defaults, with per-shot overrides. */
 const settings = (overrides) =>
   JSON.stringify({
-    grids: { Gzd: true, Mgrs: true, Gars: false, Graticule: false },
+    grids: { Gzd: true, Mgrs: true, Gars: false, Graticule: true },
     showLabels: true,
-    basemap: 'Dark',
-    projection: 'Globe',
-    mgrsPrecision: 5,
-    garsPrecision: 5,
+    basemap: 'Satellite',
+    projection: 'Mercator',
+    mgrsPrecision: 0,
+    garsPrecision: 30,
+    showRings: true,
     ringSpacing: 'Auto',
     ringUnit: 'NauticalMiles',
     ...overrides,
   })
 
+const desktop = { width: 1440, height: 900, deviceScaleFactor: 2 }
+
 const shots = [
+  {
+    name: 'desktop-satellite',
+    url: `${base}?p=51.5073509,-0.1277583#view=10.4/51.505/-0.118`,
+    viewport: desktop,
+    settings: settings({}),
+    hover: [1040, 330],
+  },
   {
     name: 'desktop-dark',
     url: `${base}?p=51.5073509,-0.1277583#view=10.4/51.505/-0.118`,
-    viewport: { width: 1440, height: 900, deviceScaleFactor: 2 },
-    settings: settings({}),
+    viewport: desktop,
+    settings: settings({ basemap: 'Dark', grids: { Gzd: true, Mgrs: true, Gars: false, Graticule: false }, mgrsPrecision: 5, garsPrecision: 5 }),
     hover: [1040, 330],
   },
   {
     name: 'desktop-globe',
     url: `${base}?p=48.8583,2.2945#view=2.3/32/8`,
-    viewport: { width: 1440, height: 900, deviceScaleFactor: 2 },
-    settings: settings({ ringSpacing: 'Off' }),
+    viewport: desktop,
+    settings: settings({ basemap: 'Dark', projection: 'Globe', showRings: false, grids: { Gzd: true, Mgrs: true, Gars: false, Graticule: false } }),
     hover: [880, 420],
   },
   {
     name: 'desktop-light-gars',
     url: `${base}?p=40.6892,-74.0445#view=8.6/40.75/-74.0`,
-    viewport: { width: 1440, height: 900, deviceScaleFactor: 2 },
-    settings: settings({ basemap: 'Light', grids: { Gzd: true, Mgrs: false, Gars: true, Graticule: false }, ringSpacing: '5' }),
+    viewport: desktop,
+    settings: settings({ basemap: 'Light', grids: { Gzd: true, Mgrs: false, Gars: true, Graticule: false }, ringSpacing: '5', garsPrecision: 5 }),
     hover: [900, 380],
   },
   {
@@ -55,7 +66,7 @@ const browser = await puppeteer.launch({
 for (const shot of shots) {
   const page = await browser.newPage()
   await page.setViewport(shot.viewport)
-  await page.evaluateOnNewDocument(value => localStorage.setItem('coordkit:settings:v3', value), shot.settings)
+  await page.evaluateOnNewDocument(value => localStorage.setItem('coordkit:settings:v4', value), shot.settings)
   await page.goto(shot.url, { waitUntil: 'networkidle0', timeout: 60000 })
   await new Promise(resolve => setTimeout(resolve, 2500))
   if (shot.hover) {

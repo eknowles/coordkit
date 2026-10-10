@@ -6,6 +6,6 @@ export const graticuleGridDefinition: Grid = {
   label: 'Graticule',
   description: 'Latitude and longitude graticule',
   colors: { onDark: [255, 255, 255, 36], onLight: [0, 0, 0, 40] },
-  enabledByDefault: false,
+  enabledByDefault: true,
   build: graticule,
 }

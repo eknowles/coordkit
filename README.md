@@ -17,20 +17,6 @@
 
 <img src="docs/demo.gif" alt="A short recording: the cursor moves over London and the readout updates, a click sets the cue and draws range rings, the map zooms in to the MGRS grid, GARS cells turn on, and a search moves the map to the Eiffel Tower" width="100%" />
 
-<table>
-  <tr>
-    <td colspan="3"><img src="docs/screenshots/desktop-dark.png" alt="The dark base map over London, with UTM zones, the MGRS grid, range rings around the cue and the readout table" /></td>
-  </tr>
-  <tr>
-    <td width="40%"><img src="docs/screenshots/desktop-globe.png" alt="The globe with UTM zones and grid zone designations" /></td>
-    <td width="40%"><img src="docs/screenshots/desktop-light-gars.png" alt="The light base map over New York with GARS cells and range rings in nautical miles" /></td>
-    <td width="20%" rowspan="2"><img src="docs/screenshots/mobile.png" alt="The phone layout, with the readout turned so that the systems run down the screen" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Globe with UTM zones</sub></td>
-    <td align="center"><sub>Light map with GARS cells</sub></td>
-  </tr>
-</table>
 
 </div>
 
@@ -40,9 +26,11 @@
 - **Copy.** Click a value in the readout table to copy it.
 - **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells and a latitude and longitude graticule. The grid spacing changes with the zoom level.
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
-- **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres.
-- **Globe or Web Mercator.** Use the globe to see grids without distortion, or Web Mercator to see what most web maps show.
-- **Map settings.** The settings button in the toolbar opens the base map, projection, precision and ring unit settings.
+- **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres. Use the **Rings** button to show or hide them.
+- **Base maps.** Satellite imagery, a dark map or a light map. Grid colours and label halos change to suit each one.
+- **Web Mercator or globe.** Web Mercator shows what most web maps show. The globe shows grids without distortion.
+- **Map settings.** The settings button in the toolbar opens the base map, projection, precision and range ring settings.
+- **Defaults.** CoordKit starts on satellite imagery in Web Mercator, with UTM zones, the MGRS grid, the graticule, labels and range rings. MGRS shows 100 kilometre squares and GARS shows 30′ cells. The browser keeps your changes.
 - **Install and offline use.** Install CoordKit as an app. After the first visit, it works without a network.
 - **Share.** The URL holds the map view and the cue.
 
@@ -81,6 +69,28 @@ All positions use the [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_Syste
 | GARS | `361HN37` |
 | Maidenhead | `IO91wm` |
 | Geohash | `gcpvj0duq` or `gh:u4pr` |
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="39%"><img src="docs/screenshots/desktop-satellite.png" alt="The default view: satellite imagery over London with the graticule, UTM zones, the MGRS grid and range rings around the cue" /></td>
+    <td width="39%"><img src="docs/screenshots/desktop-dark.png" alt="The dark base map over London, with UTM zones, the MGRS grid, range rings and the readout table" /></td>
+    <td width="22%" rowspan="4"><img src="docs/screenshots/mobile.png" alt="The phone layout, with the readout turned so that the systems run down the screen" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Satellite imagery (default)</sub></td>
+    <td align="center"><sub>Dark map with the MGRS grid</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/desktop-globe.png" alt="The globe with UTM zones and grid zone designations" /></td>
+    <td><img src="docs/screenshots/desktop-light-gars.png" alt="The light base map over New York with GARS cells and range rings in nautical miles" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Globe with UTM zones</sub></td>
+    <td align="center"><sub>Light map with GARS cells</sub></td>
+  </tr>
+</table>
 
 ## Built with
 

@@ -34,7 +34,7 @@ export const GridToggles = Schema.Record(Schema.String, Schema.Boolean)
 export type GridToggles = typeof GridToggles.Type
 
 /** Ring spacing in the ring unit, as a string so the select can carry it. */
-export const RingSpacing = Schema.Literals(['Off', 'Auto', '0.25', '0.5', '1', '2', '5', '10', '25', '50', '100'])
+export const RingSpacing = Schema.Literals(['Auto', '0.25', '0.5', '1', '2', '5', '10', '25', '50', '100'])
 export type RingSpacing = typeof RingSpacing.Type
 
 export const RingUnit = Schema.Literals(['NauticalMiles', 'Kilometres'])
@@ -47,6 +47,7 @@ export const Settings = Schema.Struct({
   projection: Projection,
   mgrsPrecision: MgrsPrecision,
   garsPrecision: GarsPrecision,
+  showRings: Schema.Boolean,
   ringSpacing: RingSpacing,
   ringUnit: RingUnit,
 })
@@ -55,10 +56,11 @@ export type Settings = typeof Settings.Type
 export const defaultSettings: Settings = {
   grids: defaultGridToggles(),
   showLabels: true,
-  basemap: 'Dark',
-  projection: 'Globe',
-  mgrsPrecision: 5,
-  garsPrecision: 5,
+  basemap: 'Satellite',
+  projection: 'Mercator',
+  mgrsPrecision: 0,
+  garsPrecision: 30,
+  showRings: true,
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',
 }

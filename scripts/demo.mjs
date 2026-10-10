@@ -1,4 +1,4 @@
-// Record the README demo GIF from a running preview (`just preview`) with headless Chrome.
+// Record the README demo GIF from a running preview (`just preview`) with headless Chrome, using the app defaults.
 // Set CHROME_PATH if Chrome is not in the default macOS location, and COORDKIT_URL for another server.
 import { writeFile } from 'node:fs/promises'
 
@@ -12,20 +12,11 @@ const { PNG } = pngjs
 const OUT = process.argv[2] ?? 'docs/demo.gif'
 const BASE = process.env.COORDKIT_URL ?? 'http://localhost:4173/'
 const VIEWPORT = { width: 1280, height: 800 }
-const GIF_WIDTH = 960
-const MIN_FRAME_MS = 70
-const TRANSPARENT = 255
-
-const settings = JSON.stringify({
-  grids: { Gzd: true, Mgrs: true, Gars: false, Graticule: false },
-  showLabels: true,
-  basemap: 'Dark',
-  projection: 'Globe',
-  mgrsPrecision: 5,
-  garsPrecision: 5,
-  ringSpacing: 'Auto',
-  ringUnit: 'NauticalMiles',
-})
+// NOTE: satellite imagery changes most pixels when the map moves, so size, frame rate and colours are kept modest.
+const GIF_WIDTH = 800
+const MIN_FRAME_MS = 90
+const COLOURS = 128
+const TRANSPARENT = COLOURS - 1
 
 /** Headless capture has no mouse pointer, so draw a cross that follows the mouse and pulses on click. */
 const installCursor = () => {
@@ -82,7 +73,6 @@ const browser = await puppeteer.launch({
 })
 const page = await browser.newPage()
 await page.setViewport(VIEWPORT)
-await page.evaluateOnNewDocument(value => localStorage.setItem('coordkit:settings:v3', value), settings)
 await page.evaluateOnNewDocument(installCursor)
 await page.goto(`${BASE}#view=9.7/51.505/-0.11`, { waitUntil: 'networkidle0', timeout: 60000 })
 await sleep(2000)
@@ -105,7 +95,7 @@ await glide(page, 640, 400, 800)
 await page.mouse.click(640, 400)
 await sleep(1300)
 // 3. Zoom in on the cue: the MGRS grid refines from 10 km to 1 km squares.
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < 9; i++) {
   await page.mouse.wheel({ deltaY: -110 })
   await sleep(170)
 }

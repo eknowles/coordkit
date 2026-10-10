@@ -28,6 +28,7 @@ export const Message = defineMessageUnion({
   ClickedClearCue: {},
   ToggledGrid: { gridId: Schema.String },
   ToggledLabels: {},
+  ToggledRings: {},
   SelectedBasemap: { basemap: Basemap },
   SelectedProjection: { projection: Projection },
   SelectedMgrsPrecision: { precision: MgrsPrecision },

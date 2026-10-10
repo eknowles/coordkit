@@ -3,7 +3,7 @@ import { Command, Mount, click, expect, given, label, role, scene, text, type } 
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
-import { MoveCamera, RenderOverlay } from '../map/commands'
+import { MoveCamera, RenderOverlay, SetBasemap } from '../map/commands'
 import { MountMap } from '../map/mount'
 import { formatters, grids } from '../systems/registry'
 import { CopyText, ReplaceCueInUrl, SaveSettings, WaitBeforeClearCopied } from './commands'
@@ -95,14 +95,34 @@ describe('toolbar', () => {
     )
   })
 
-  test('keeps ring spacing in the bar and the rest in the map settings menu', () => {
+  test('has a rings toggle in the bar and the rest in the map settings menu', () => {
     scene(
       { update, view },
       given(readyModel),
       acknowledgeMapMount,
-      expect(role('combobox', { name: 'Rings' })).toExist(),
+      expect(role('button', { name: 'Rings' })).toHaveAttr('aria-pressed', 'true'),
       expect(role('button', { name: 'Map settings' })).toHaveAttr('popovertarget', 'map-settings'),
-      ...['Base map', 'Projection', 'MGRS', 'GARS', 'Unit'].map(name => expect(role('combobox', { name })).toExist()),
+      ...['MGRS', 'GARS', 'Spacing', 'Unit'].map(name => expect(role('combobox', { name })).toExist()),
+      expect(role('group', { name: 'Base map' })).toExist(),
+      expect(role('group', { name: 'Projection' })).toExist(),
+    )
+  })
+
+  test('base map and projection are button groups with one pressed', () => {
+    scene(
+      { update, view },
+      given(readyModel),
+      acknowledgeMapMount,
+      expect(role('button', { name: 'Satellite' })).toHaveAttr('aria-pressed', 'true'),
+      expect(role('button', { name: 'Dark' })).toHaveAttr('aria-pressed', 'false'),
+      click(role('button', { name: 'Dark' })),
+      Command.resolveAll(
+        [SaveSettings, Message.CompletedSaveSettings()],
+        [RenderOverlay, Message.CompletedRenderOverlay()],
+        [SetBasemap, Message.CompletedSetBasemap()],
+      ),
+      expect(role('button', { name: 'Dark' })).toHaveAttr('aria-pressed', 'true'),
+      expect(role('button', { name: 'Mercator' })).toHaveAttr('aria-pressed', 'true'),
     )
   })
 

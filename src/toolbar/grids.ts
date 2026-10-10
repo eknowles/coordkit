@@ -7,7 +7,7 @@ import { Message } from '../app/message'
 import { grids, isGridEnabled } from '../systems/registry'
 import { gridSwatchView } from '../ui/swatch'
 
-const toggleView = (
+export const toggleView = (
   label: string,
   description: string,
   isOn: boolean,

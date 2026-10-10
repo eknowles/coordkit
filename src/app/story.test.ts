@@ -188,8 +188,8 @@ describe('settings', () => {
     story(
       update,
       given(readyModel),
-      message(Message.SelectedProjection({ projection: 'Mercator' })),
-      model(m => expect(m.settings.projection).toBe('Mercator')),
+      message(Message.SelectedProjection({ projection: 'Globe' })),
+      model(m => expect(m.settings.projection).toBe('Globe')),
       Command.expectHas(SetProjection),
       Command.resolveAll(
         [SaveSettings, Message.CompletedSaveSettings()],
@@ -276,6 +276,33 @@ describe('range rings', () => {
         expect(m.settings.ringSpacing).toBe('2')
         expect(m.settings.ringUnit).toBe('Kilometres')
       }),
+      Command.resolveAll(
+        [SaveSettings, Message.CompletedSaveSettings()],
+        [RenderOverlay, Message.CompletedRenderOverlay()],
+      ),
+    )
+  })
+})
+
+describe('defaults', () => {
+  test('start on satellite imagery in Web Mercator, with the graticule, labels and rings on', () => {
+    expect(defaultSettings).toMatchObject({
+      basemap: 'Satellite',
+      projection: 'Mercator',
+      showLabels: true,
+      showRings: true,
+      mgrsPrecision: 0,
+      garsPrecision: 30,
+    })
+    expect(defaultSettings.grids).toMatchObject({ Graticule: true, Gzd: true, Mgrs: true, Gars: false })
+  })
+
+  test('ToggledRings turns the range rings off and on', () => {
+    story(
+      update,
+      given(readyModel),
+      message(Message.ToggledRings()),
+      model(m => expect(m.settings.showRings).toBe(false)),
       Command.resolveAll(
         [SaveSettings, Message.CompletedSaveSettings()],
         [RenderOverlay, Message.CompletedRenderOverlay()],
