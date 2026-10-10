@@ -1,0 +1,50 @@
+import { Schema } from 'effect'
+import { defineMessageUnion } from 'foldkit/message'
+
+import {
+  Basemap,
+  Layout,
+  GarsPrecision,
+  LatLon,
+  MapView,
+  MgrsPrecision,
+  Pointer,
+  Projection,
+  RingSpacing,
+  RingUnit,
+  Target,
+} from './domain'
+
+export const Message = defineMessageUnion({
+  SucceededMountMap: { hostId: Schema.String },
+  FailedMountMap: { reason: Schema.String },
+  CompletedLoadStyle: {},
+  MovedMap: { view: MapView },
+  MovedCursor: { point: LatLon },
+  LeftMap: {},
+  ClickedMap: { point: LatLon },
+  UpdatedSearchQuery: { value: Schema.String },
+  SubmittedSearch: {},
+  ClickedClearCue: {},
+  ToggledGrid: { gridId: Schema.String },
+  ToggledLabels: {},
+  SelectedBasemap: { basemap: Basemap },
+  SelectedProjection: { projection: Projection },
+  SelectedMgrsPrecision: { precision: MgrsPrecision },
+  SelectedGarsPrecision: { precision: GarsPrecision },
+  SelectedRingSpacing: { spacing: RingSpacing },
+  SelectedRingUnit: { unit: RingUnit },
+  ChangedLayout: { layout: Layout },
+  ChangedPointer: { pointer: Pointer },
+  ClickedCopy: { systemId: Schema.String, target: Target, text: Schema.String },
+  SucceededCopy: { systemId: Schema.String, target: Target },
+  FailedCopy: { reason: Schema.String },
+  CompletedWaitBeforeClearCopied: { systemId: Schema.String, target: Target },
+  CompletedRenderOverlay: {},
+  CompletedSetBasemap: {},
+  CompletedSetProjection: {},
+  CompletedMoveCamera: {},
+  CompletedSaveSettings: {},
+  CompletedReplaceCueInUrl: {},
+})
+export type Message = typeof Message.Type
