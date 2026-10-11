@@ -11,24 +11,70 @@ the folder layout and import rules, read [`AGENTS.md`](../AGENTS.md).
 Foldkit is a frontend framework that uses the Elm Architecture. It uses
 [Effect](https://effect.website) as its base. An application has these parts:
 
-| Part             | What it is                                                             | CoordKit file                             |
-| ---------------- | ---------------------------------------------------------------------- | ----------------------------------------- |
-| **Flags**        | Data that the application reads one time, before it starts             | `src/flags.ts`                            |
-| **Model**        | One immutable value that holds all of the application state            | `src/model.ts`                            |
-| **Message**      | A fact about an event that occurred, for example `ClickedMap`          | `src/message.ts`                          |
-| **init**         | A function that makes the first Model from the Flags                   | `src/init.ts`                             |
-| **update**       | A pure function. It takes a Model and a Message, and gives a new Model | `src/update.ts`                           |
-| **Command**      | A side effect that `update` asks for. The runtime runs it              | `src/command.ts`                          |
-| **Subscription** | A stream of Messages from the browser, for example a media query       | `src/subscription.ts`                     |
-| **view**         | A pure function. It takes the Model and gives the HTML tree            | `src/view.ts`                             |
-| **Submodel**     | A smaller Model, Message, update and view that the root Model contains | `src/settings/`, `src/goTo/`, `src/copy/` |
+| Part             | What it is                                                             | CoordKit file             |
+| ---------------- | ---------------------------------------------------------------------- | ------------------------- |
+| **Flags**        | Data that the application reads one time, before it starts             | `src/app/flags.ts`        |
+| **Model**        | One immutable value that holds all of the application state            | `src/app/model.ts`        |
+| **Message**      | A fact about an event that occurred, for example `ClickedMap`          | `src/app/message.ts`      |
+| **init**         | A function that makes the first Model from the Flags                   | `src/app/init.ts`         |
+| **update**       | A pure function. It takes a Model and a Message, and gives a new Model | `src/app/update.ts`       |
+| **Command**      | A side effect that `update` asks for. The runtime runs it              | `src/app/command.ts`      |
+| **Subscription** | A stream of Messages from the browser, for example a media query       | `src/app/subscription.ts` |
+| **view**         | A pure function. It takes the Model and gives the HTML tree            | `src/app/view.ts`         |
+| **Submodel**     | A smaller Model, Message, update and view that the root Model contains | `src/submodels/`          |
 
-`src/entry.ts` connects these parts with `Runtime.makeApplication` and starts
+`src/app/entry.ts` connects these parts with `Runtime.makeApplication` and starts
 the application with `Runtime.run`.
 
 The application code does not change state directly. It does not call the
 browser directly from `update` or `view`. Only the runtime changes the Model,
 runs Commands and changes the page.
+
+## Folders
+
+Each folder in `src/` holds one kind of code. Use the folder to find out what
+a file is.
+
+| Folder           | Kind                | Uses Foldkit                                 |
+| ---------------- | ------------------- | -------------------------------------------- |
+| `src/app/`       | The Foldkit program | Yes                                          |
+| `src/submodels/` | Submodels           | Yes                                          |
+| `src/views/`     | Views without state | Yes, the HTML builder only                   |
+| `src/map/`       | The map adapter     | Only `view.ts` and `cameraRequest.ts`        |
+| `src/core/`      | Plain TypeScript    | No. The lint check stops all Foldkit imports |
+| `src/test/`      | Test support        | Yes                                          |
+
+A folder in `src/submodels/` has state. It has `model.ts`, `message.ts`,
+`update.ts` and `view.ts`. A folder in `src/views/` has no state. It has view
+functions only, and it reads the root Model.
+
+Code outside `src/app/` imports the root with the `@/` alias, for example
+`import { Message } from '@/message'`. The Foldkit lint plugin uses this path
+to identify the root Message. Do not change it to a relative path such as
+`../../app/message`.
+
+```mermaid
+flowchart TB
+    app["app/ (Foldkit program)"]
+    submodels["submodels/ (state)"]
+    views["views/ (no state)"]
+    map["map/ (map adapter)"]
+    core["core/ (plain TypeScript)"]
+
+    app --> submodels
+    app --> views
+    app --> map
+    views --> submodels
+    views -- "@/model, @/message" --> app
+    map -- "@/model, @/message" --> app
+    app --> core
+    submodels --> core
+    views --> core
+    map --> core
+```
+
+The arrows show which folder can import from which folder. Nothing points out
+of `core/`.
 
 ## The update loop
 
@@ -87,7 +133,7 @@ sequenceDiagram
     Runtime->>Runtime: view(model), start Subscriptions
 ```
 
-`src/flags.ts` is an Effect. It reads:
+`src/app/flags.ts` is an Effect. It reads:
 
 - The saved settings from `localStorage`. If the settings are missing, cannot
   be read, or have an old shape, the result is `Option.none()`. `init` then
@@ -97,13 +143,13 @@ sequenceDiagram
 - The layout (`Wide` or `Compact`) and the pointer (`Fine` or `Touch`) from
   media queries.
 
-`src/init.ts` makes the first Model. It parses the cue text with the same
+`src/app/init.ts` makes the first Model. It parses the cue text with the same
 parsers that the search field uses, so a shared link can contain any format
 that search accepts. `init` gives no Commands.
 
 ## The Model
 
-`src/model.ts` declares the Model as an Effect `Schema.Struct`. Because the
+`src/app/model.ts` declares the Model as an Effect `Schema.Struct`. Because the
 Model is a Schema, DevTools can show it, and tests can compare it.
 
 ```mermaid
@@ -160,7 +206,7 @@ readout can show it in grey after the cursor leaves the map.
 
 ## Messages
 
-`src/message.ts` declares each Message with `defineMessageUnion`. Each name
+`src/app/message.ts` declares each Message with `defineMessageUnion`. Each name
 tells what occurred, in the past tense. It does not tell what to do.
 
 | Message                                   | Source                   |
@@ -180,7 +226,7 @@ sends the wrapped Message to the correct Submodel.
 
 ## Update, Steps and Commands
 
-`src/update.ts` uses `Message.match` to select one handler for each Message.
+`src/app/update.ts` uses `Message.match` to select one handler for each Message.
 Some handlers change one field. Others join small **Steps** with
 `Update.combine`. A Step is a function from a Model to a new Model and
 Commands. `Update.combine` runs the Steps in order and collects all of the
@@ -206,20 +252,20 @@ You declare a Command with `Command.define`. A Command has a name, arguments, th
 Messages that it can give, and an `execute` Effect. `update` only returns the
 Command. The runtime runs it.
 
-| Command                        | File                     | What it does                                                   | Result Messages                                           |
-| ------------------------------ | ------------------------ | -------------------------------------------------------------- | --------------------------------------------------------- |
-| `ReplaceUrl`                   | `src/command.ts`         | Writes the cue and the camera into the URL with `replaceState` | `SucceededReplaceUrl`, `FailedReplaceUrl`                 |
-| `SaveSettings`                 | `src/settings/update.ts` | Writes the settings to `localStorage`                          | `SucceededSaveSettings`, `FailedSaveSettings`             |
-| `GetCurrentPosition`           | `src/goTo/update.ts`     | Asks the browser for the device position                       | `SucceededGetCurrentPosition`, `FailedGetCurrentPosition` |
-| `CopyText`                     | `src/copy/update.ts`     | Writes a reading to the clipboard                              | `SucceededCopyText`, `FailedCopyText`                     |
-| `WaitBeforeHidingCopyFeedback` | `src/copy/update.ts`     | Waits, then tells the Copy Submodel to hide "Copied"           | `CompletedWaitBeforeHidingCopyFeedback`                   |
+| Command                        | File                               | What it does                                                   | Result Messages                                           |
+| ------------------------------ | ---------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| `ReplaceUrl`                   | `src/app/command.ts`               | Writes the cue and the camera into the URL with `replaceState` | `SucceededReplaceUrl`, `FailedReplaceUrl`                 |
+| `SaveSettings`                 | `src/submodels/settings/update.ts` | Writes the settings to `localStorage`                          | `SucceededSaveSettings`, `FailedSaveSettings`             |
+| `GetCurrentPosition`           | `src/submodels/goTo/update.ts`     | Asks the browser for the device position                       | `SucceededGetCurrentPosition`, `FailedGetCurrentPosition` |
+| `CopyText`                     | `src/submodels/copy/update.ts`     | Writes a reading to the clipboard                              | `SucceededCopyText`, `FailedCopyText`                     |
+| `WaitBeforeHidingCopyFeedback` | `src/submodels/copy/update.ts`     | Waits, then tells the Copy Submodel to hide "Copied"           | `CompletedWaitBeforeHidingCopyFeedback`                   |
 
 Each Command catches its errors and changes them into a failure Message with
 `Effect.catch`. Thus, a Command never fails the runtime.
 
 ## Subscriptions
 
-`src/subscription.ts` declares two Subscriptions. Each one changes a media
+`src/app/subscription.ts` declares two Subscriptions. Each one changes a media
 query into a stream of Messages:
 
 - `layout` sends `UpdatedLayout` when the window becomes narrower or wider
@@ -231,12 +277,12 @@ depend on the Model.
 
 ## The view
 
-`src/view.ts` gives the page as a tree of `h.*` calls. The view reads only the
+`src/app/view.ts` gives the page as a tree of `h.*` calls. The view reads only the
 Model. Event handlers in the view give Messages. They do not run code.
 
 ```mermaid
 flowchart TB
-    root["view (src/view.ts)"]
+    root["view (src/app/view.ts)"]
     toolbar["Toolbar.view"]
     main["main"]
     map["CoordkitMap.view: &lt;coordkit-map&gt;"]
@@ -272,11 +318,11 @@ map. A `Compact` layout shows a sheet over the map.
 CoordKit has three Submodels. Each one is a folder with `model.ts`,
 `message.ts`, `update.ts`, `view.ts` and an `index.ts` barrel.
 
-| Submodel | Folder          | Responsibility                                                             |
-| -------- | --------------- | -------------------------------------------------------------------------- |
-| Settings | `src/settings/` | Grid toggles, base map, projection, precisions and range rings. Saves them |
-| GoTo     | `src/goTo/`     | The search field, "Find my location", and the status line for both         |
-| Copy     | `src/copy/`     | Copies a readout cell to the clipboard and shows "Copied" or "Copy failed" |
+| Submodel | Folder                    | Responsibility                                                             |
+| -------- | ------------------------- | -------------------------------------------------------------------------- |
+| Settings | `src/submodels/settings/` | Grid toggles, base map, projection, precisions and range rings. Saves them |
+| GoTo     | `src/submodels/goTo/`     | The search field, "Find my location", and the status line for both         |
+| Copy     | `src/submodels/copy/`     | Copies a readout cell to the clipboard and shows "Copied" or "Copy failed" |
 
 A Submodel does not know about the root Model. The root connects each
 Submodel in two places.
@@ -455,7 +501,7 @@ Model writes the URL.
 
 ## DevTools and time travel
 
-`src/entry.ts` turns on Foldkit DevTools. DevTools records each Message and
+`src/app/entry.ts` turns on Foldkit DevTools. DevTools records each Message and
 each Model. You can go back to an older Model, and the view renders it.
 
 - `MovedCursor` is in `excludeFromHistory`. It occurs on each mouse movement,
@@ -469,10 +515,10 @@ each Model. You can go back to an older Model, and the view renders it.
 Because `update` and `view` are pure functions, tests can run them without a
 browser.
 
-| Kind  | Files                                      | What it checks                                                                  |
-| ----- | ------------------------------------------ | ------------------------------------------------------------------------------- |
-| Story | `src/story.test.ts`, `src/*/story.test.ts` | `update` only. Give a Model and Messages, then check the Model and the Commands |
-| Scene | `src/scene.test.ts`                        | `update` and `view` together. Click, type and find elements by role or label    |
+| Kind  | Files                                                    | What it checks                                                                  |
+| ----- | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Story | `src/app/story.test.ts`, `src/submodels/*/story.test.ts` | `update` only. Give a Model and Messages, then check the Model and the Commands |
+| Scene | `src/app/scene.test.ts`                                  | `update` and `view` together. Click, type and find elements by role or label    |
 
 A story test looks like this:
 

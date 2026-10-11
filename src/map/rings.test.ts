@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { destination } from '../geo/geodesic'
-import type { Box } from '../geo/geometry'
+import { destination } from '../core/geo/geodesic'
+import type { Box } from '../core/geo/geometry'
 import {
   RING_COUNT,
   autoStep,

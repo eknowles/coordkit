@@ -2,8 +2,8 @@ import { Option } from 'effect'
 import { modifyFields } from 'foldkit/struct'
 import { describe, expect, test } from 'vitest'
 
-import * as Mgrs from '../systems/mgrs'
-import { grids } from '../systems/registry'
+import * as Mgrs from '../core/systems/mgrs'
+import { grids } from '../core/systems/registry'
 import { type OverlayInput, buildOverlayFrame } from './overlay'
 
 const input: OverlayInput = {

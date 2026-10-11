@@ -191,17 +191,17 @@ To run a command without a Devbox shell, use `devbox run -- just <recipe>`.
 
 ## Architecture
 
-| Folder                                    | Contents                                                                                                                                                                                                                                    |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/`                                    | The Foldkit root: Model, Messages, Flags, Subscriptions, `init`, `update`, the URL Command and the root view.                                                                                                                               |
-| `src/settings/`, `src/goTo/`, `src/copy/` | Submodels for the map settings, for search and "Find my location", and for the copy feedback in the readout.                                                                                                                                |
-| `src/domain/`                             | Schemas that more than one module uses, for example the position, the camera and the base map.                                                                                                                                              |
-| `src/map/`                                | The map adapter: the `<coordkit-map>` custom element, grid overlays, grid labels, the cue marker and range rings. The view sets the element's properties from the Model, so the map always matches the Model, also in DevTools time travel. |
-| `src/toolbar/`                            | The toolbar above the map. It shows the search, settings and overlay views of the Submodels.                                                                                                                                                |
-| `src/readout/`                            | The readout: a table on wide screens and a sheet of cards on phones. Rows are positions and columns are coordinate systems.                                                                                                                 |
-| `src/ui/`                                 | Shared view parts: icons, the select control, the overlay switch and grid colour swatches.                                                                                                                                                  |
-| `src/systems/`                            | One folder for each coordinate system, the capability interfaces and the registry.                                                                                                                                                          |
-| `src/geo/`                                | Ellipsoid constants, shared geometry and the WGS84 geodesic.                                                                                                                                                                                |
+Each folder in `src/` holds one kind of code.
+
+| Folder           | Kind                | Contents                                                                                                                                                                                                                                 |
+| ---------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/`       | Foldkit program     | The root: Model, Messages, Flags, Subscriptions, `init`, `update`, the URL Command and the root view.                                                                                                                                    |
+| `src/submodels/` | Submodels           | `settings/` for the map settings, `goTo/` for search and "Find my location", and `copy/` for the copy feedback in the readout.                                                                                                           |
+| `src/views/`     | Views without state | `toolbar/` above the map, `readout/` (a table on wide screens and a sheet of cards on phones), and `ui/` (icons, the select control, the overlay switch and grid colour swatches).                                                       |
+| `src/map/`       | Map adapter         | The `<coordkit-map>` custom element, grid overlays, grid labels, the cue marker and range rings. The view sets the element's properties from the Model, so the map always matches the Model, also in DevTools time travel.               |
+| `src/core/`      | Plain TypeScript    | `systems/` (one folder for each coordinate system, the capability interfaces and the registry), `geo/` (ellipsoid constants, shared geometry and the WGS84 geodesic) and `domain/` (Schemas that more than one module uses). No Foldkit. |
+
+For a description of how the Foldkit parts work together, see [How CoordKit uses Foldkit](docs/foldkit-architecture.md).
 
 Each coordinate system can supply three capabilities:
 
@@ -209,13 +209,13 @@ Each coordinate system can supply three capabilities:
 - A parser, which reads the system in the search box.
 - A grid, which draws the system on the map and outlines the cue cell.
 
-The registry in `src/systems/registry.ts` lists all of them. The rest of the application reads the registry and does not refer to a system by name.
+The registry in `src/core/systems/registry.ts` lists all of them. The rest of the application reads the registry and does not refer to a system by name.
 
 ### Add a coordinate system
 
-1. Create a folder in `src/systems/`. Put the conversion code and its tests in the folder.
+1. Create a folder in `src/core/systems/`. Put the conversion code and its tests in the folder.
 2. In the folder, add an `index.ts` file. Export a formatter, a parser or a grid, as the system supports.
-3. Add each export to the correct list in `src/systems/registry.ts`.
+3. Add each export to the correct list in `src/core/systems/registry.ts`.
 
 ## Deploy to GitHub Pages
 

@@ -4,10 +4,11 @@ import maplibregl, {
   type MapMouseEvent,
 } from 'maplibre-gl'
 
-import { Camera, CameraRequest, type LatLon } from '../domain'
-import { wrapLon } from '../geo/ellipsoid'
-import type { Box } from '../geo/geometry'
+import { Camera, type LatLon } from '../core/domain'
+import { wrapLon } from '../core/geo/ellipsoid'
+import type { Box } from '../core/geo/geometry'
 import { basemapStyles } from './basemaps'
+import * as CameraRequest from './cameraRequest'
 import { ensureOverlayLayers, setOverlay } from './layers'
 import { buildOverlayFrame } from './overlay'
 import {

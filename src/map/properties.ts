@@ -2,15 +2,15 @@ import { Option, Record, Schema } from 'effect'
 
 import {
   Camera,
-  CameraRequest,
   GridToggles,
   LatLon,
   MapStyle,
   RangeRings,
-} from '../domain'
-import { GarsPrecision } from '../systems/gars'
-import { MgrsPrecision } from '../systems/mgrs'
-import { TileZoom } from '../systems/tile'
+} from '../core/domain'
+import { GarsPrecision } from '../core/systems/gars'
+import { MgrsPrecision } from '../core/systems/mgrs'
+import { TileZoom } from '../core/systems/tile'
+import * as CameraRequest from './cameraRequest'
 
 /**
  * The properties of `<coordkit-map>`, declared once. The element's TypeScript type and the

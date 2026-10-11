@@ -1,10 +1,10 @@
 import { Array, Option } from 'effect'
 
-import type { GridToggles } from '../domain'
-import type { LatLon } from '../geo/ellipsoid'
-import type { RGBA } from '../geo/geometry'
-import { grids, isGridEnabled } from '../systems/registry'
-import type { MapTone, SystemOptions } from '../systems/types'
+import type { GridToggles } from '../core/domain'
+import type { LatLon } from '../core/geo/ellipsoid'
+import type { RGBA } from '../core/geo/geometry'
+import { grids, isGridEnabled } from '../core/systems/registry'
+import type { MapTone, SystemOptions } from '../core/systems/types'
 import { LineRank, lineFeature } from './features'
 
 export const CUE_COLOR: RGBA = [245, 166, 35, 255]

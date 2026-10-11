@@ -1,5 +1,5 @@
-import type { GridLabel, Position, RGBA } from '../geo/geometry'
-import type { MapTone } from '../systems/types'
+import type { GridLabel, Position, RGBA } from '../core/geo/geometry'
+import type { MapTone } from '../core/systems/types'
 
 /** The order lines draw in, bottom first: grids, then range rings, then the cue's cells. */
 export const LineRank = { Grid: 0, Rings: 100, CueCells: 200 } as const

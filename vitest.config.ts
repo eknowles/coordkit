@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  resolve: { tsconfigPaths: true },
   test: {
     include: ['src/**/*.{test,spec}.ts'],
     environment: 'happy-dom',
-    setupFiles: ['./src/vitest-setup.ts'],
+    setupFiles: ['./src/test/setup.ts'],
     server: {
       deps: {
         inline: ['foldkit', '@foldkit/ui', '@foldkit/devtools'],
@@ -16,8 +17,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.test.ts',
         'src/test/**',
-        'src/vitest-setup.ts',
-        'src/entry.ts',
+        'src/app/entry.ts',
       ],
       reporter: ['text', 'text-summary', 'json-summary', 'html'],
       reportsDirectory: 'coverage',

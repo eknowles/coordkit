@@ -1,10 +1,11 @@
 import { Option } from 'effect'
 
-import * as Copy from '../copy'
-import type { Camera } from '../domain'
-import * as GoTo from '../goTo'
-import { CursorState, MapState, type Model } from '../model'
-import * as Settings from '../settings'
+import { CursorState, MapState, type Model } from '@/model'
+
+import type { Camera } from '../core/domain'
+import * as Copy from '../submodels/copy'
+import * as GoTo from '../submodels/goTo'
+import * as Settings from '../submodels/settings'
 
 export const london = { lat: 51.5073509, lon: -0.1277583 }
 export const newYork = { lat: 40.7128, lon: -74.006 }

@@ -24,6 +24,8 @@ const cacheAsViewed = (
 export default defineConfig({
   // NOTE: relative asset paths let the build run from a GitHub Pages project sub-path.
   base: './',
+  // NOTE: `@/` is the Foldkit root in src/app/; tsconfig.json declares it.
+  resolve: { tsconfigPaths: true },
   plugins: [
     tailwindcss(),
     foldkit(),
@@ -101,6 +103,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
   },
   optimizeDeps: {
-    entries: ['src/entry.ts'],
+    entries: ['src/app/entry.ts'],
   },
 })

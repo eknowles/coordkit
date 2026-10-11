@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+/* repos/foldkit is a vendored reference copy of Foldkit; keep its class names out of the build. */
+@source not '../../repos';
+
+/*
+ * Neutral greys with one blue accent. The grid line colours live with each coordinate
+ * system in src/systems; keep them distinct from each other and from the cue.
+ */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, Menlo, monospace;
+
+  --color-surface: #111113;
+  --color-panel: #18181b;
+  --color-line: #2a2a2e;
+  --color-line-soft: #202024;
+  --color-ink: #ededed;
+  --color-muted: #a1a1aa;
+  --color-faint: #71717a;
+  --color-accent: #4c8bf5;
+  --color-cue: #f5a623;
+  --color-ok: #46a758;
+  --color-danger: #e5484d;
+  --color-focus: #4c8bf5;
+}
+
+:root {
+  color-scheme: dark;
+  font-feature-settings: 'cv11';
+}
+
+.font-mono {
+  font-variant-ligatures: none;
+}
+
+/* The map cursor is the browser's own crosshair, also while dragging the map. */
+.ck-map .maplibregl-canvas-container.maplibregl-interactive,
+.ck-map .maplibregl-canvas-container.maplibregl-interactive:active,
+.ck-map .maplibregl-canvas-container.maplibregl-track-pointer {
+  cursor: crosshair;
+}
+
+/* The settings popover sits under its button at the top right, not in the middle of the screen. */
+.ck-popover {
+  inset: auto;
+  top: 3.25rem;
+  right: 0.75rem;
+  margin: 0;
+}
+
+/* One chevron for every select, replacing each browser's own arrow. */
+.ck-select {
+  appearance: none;
+  padding-right: 1.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23a1a1aa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 0.75rem;
+}
+
+.ck-select:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23ededed' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+.maplibregl-ctrl-attrib {
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.maplibregl-ctrl-scale {
+  font-family: var(--font-mono);
+}

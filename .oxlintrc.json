@@ -25,6 +25,36 @@
       { "ignoreDeclarationSort": true, "ignoreCase": false }
     ]
   },
+  "overrides": [
+    {
+      "files": ["src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["foldkit", "foldkit/*", "@foldkit/*"],
+                "message": "core/ is plain TypeScript and Effect. Put Foldkit code in app/, submodels/, views/ or map/."
+              },
+              {
+                "group": [
+                  "@/*",
+                  "**/app",
+                  "**/app/**",
+                  "**/submodels/**",
+                  "**/views/**",
+                  "**/map",
+                  "**/map/**"
+                ],
+                "message": "core/ must not import the application. Move the shared code into core/."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
   "ignorePatterns": [
     "dist/",
     "node_modules/",

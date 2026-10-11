@@ -1,7 +1,7 @@
 import type { StyleSpecification } from 'maplibre-gl'
 
-import type { MapStyle } from '../domain'
-import type { MapTone } from '../systems/types'
+import type { MapStyle } from '../core/domain'
+import type { MapTone } from '../core/systems/types'
 
 const OPENFREEMAP_URL = 'https://tiles.openfreemap.org'
 

@@ -1,8 +1,8 @@
 import { Option } from 'effect'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { CameraRequest } from '../domain'
-import { defaultGridToggles } from '../systems/registry'
+import { defaultGridToggles } from '../core/systems/registry'
+import * as CameraRequest from './cameraRequest'
 
 const fake = vi.hoisted(() => {
   const handlers = new Map<string, (event?: unknown) => void>()

@@ -1,9 +1,9 @@
 import { Array, Option } from 'effect'
 
-import type { RangeRings } from '../domain'
-import type { LatLon } from '../geo/ellipsoid'
-import { METRES_PER_NAUTICAL_MILE, destination } from '../geo/geodesic'
-import type { Box, GridLabel, Position, RGBA } from '../geo/geometry'
+import type { RangeRings } from '../core/domain'
+import type { LatLon } from '../core/geo/ellipsoid'
+import { METRES_PER_NAUTICAL_MILE, destination } from '../core/geo/geodesic'
+import type { Box, GridLabel, Position, RGBA } from '../core/geo/geometry'
 import { CUE_COLOR } from './cue'
 import { LineRank, lineFeature } from './features'
 

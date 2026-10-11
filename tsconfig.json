@@ -13,6 +13,9 @@
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "noEmit": true,
+    "paths": {
+      "@/*": ["./src/app/*"]
+    },
     "plugins": [
       {
         "name": "@effect/language-service",

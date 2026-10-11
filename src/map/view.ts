@@ -1,8 +1,9 @@
 import { CustomElement } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import { Message } from '../message'
-import { MapState, type Model } from '../model'
+import { Message } from '@/message'
+import { MapState, type Model } from '@/model'
+
 import { MAP_TAG } from './element'
 import { mapEventFields, mapPropertyFields } from './properties'
 
