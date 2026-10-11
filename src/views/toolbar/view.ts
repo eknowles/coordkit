@@ -33,7 +33,8 @@ const toSettingsMessage = (message: Settings.Message): Message =>
 /**
  * Wide screens: one row. Narrower screens: brand, search and the icon buttons on top, then the
  * overlay toggles in a strip that scrolls sideways. The two wrappers dissolve (`2xl:contents`) on
- * wide screens so every control joins the single row.
+ * wide screens so every control joins the single row. Compact screens add the settings button
+ * and, under the toggles, the settings strip; wider layouts show settings beside the map.
  */
 export const view = (model: Model, h: HtmlBuilder<Message>): Html =>
   h.header(
@@ -62,12 +63,14 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Html =>
             view: GoTo.locateButtonView,
             toParentMessage: toGoToMessage,
           }),
-          h.submodel({
-            slotId: 'settings-menu',
-            model: model.settings,
-            view: Settings.menuView,
-            toParentMessage: toSettingsMessage,
-          }),
+          model.layout === 'Compact'
+            ? h.submodel({
+                slotId: 'settings-button',
+                model: model.settings,
+                view: Settings.panelButtonView,
+                toParentMessage: toSettingsMessage,
+              })
+            : h.empty,
           githubLinkView(h),
         ],
       ),
@@ -86,5 +89,13 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Html =>
           }),
         ],
       ),
+      model.layout === 'Compact'
+        ? h.submodel({
+            slotId: 'settings-panel',
+            model: model.settings,
+            view: Settings.compactPanelView,
+            toParentMessage: toSettingsMessage,
+          })
+        : h.empty,
     ],
   )

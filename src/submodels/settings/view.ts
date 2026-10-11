@@ -3,7 +3,7 @@ import { Array, Option } from 'effect'
 import { Submodel } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
-import { Popover, RadioGroup } from '@foldkit/ui'
+import { Disclosure, RadioGroup } from '@foldkit/ui'
 
 import type { MapStyle, RangeRings } from '../../core/domain'
 import type { GarsPrecision } from '../../core/systems/gars'
@@ -153,27 +153,22 @@ const ringUnitOptions: Array.NonEmptyReadonlyArray<
   { value: 'Kilometres', label: 'Kilometres' },
 ]
 
-const sectionView = (
-  heading: string,
-  rows: ReadonlyArray<Html>,
-  h: HtmlBuilder<Message>,
-): Html =>
-  h.section(
-    [h.Class('grid gap-2')],
-    [h.h2([h.Class('text-[11px] font-medium text-muted')], [heading]), ...rows],
-  )
+/** Every setting is a field with its label on top. The panel sets the width: one column beside the map, a wrapping grid on phones. */
+const FIELD_CLASS = 'grid min-w-0 gap-1'
+const FIELD_LABEL_CLASS = 'text-[11px] font-medium text-faint'
 
-/** A row of radio pills: one choice from a short list, with arrow-key movement. */
+/** A row of radio pills under its label: one choice from a short list, with arrow-key movement. */
 const pillsView =
-  (label: string, h: HtmlBuilder<Message>) =>
-  <Value extends string>({
-    group,
-    options,
-  }: RadioGroup.RenderInfo<Value>): Html =>
+  <Value extends string>(
+    label: string,
+    toTitle: (value: Value) => Option.Option<string>,
+    h: HtmlBuilder<Message>,
+  ) =>
+  ({ group, options }: RadioGroup.RenderInfo<Value>): Html =>
     h.div(
-      [h.Class('flex items-center justify-between gap-2 text-xs text-faint')],
+      [h.Class(FIELD_CLASS)],
       [
-        h.span([h.AriaHidden(true)], [label]),
+        h.span([h.Class(FIELD_LABEL_CLASS), h.AriaHidden(true)], [label]),
         h.div(
           [
             ...group,
@@ -184,8 +179,12 @@ const pillsView =
               option.value,
               [
                 ...option.option,
+                ...Option.match(toTitle(option.value), {
+                  onNone: () => [],
+                  onSome: title => [h.Title(title)],
+                }),
                 h.Class(
-                  'cursor-pointer rounded px-2 py-0.5 text-xs text-muted outline-hidden hover:text-ink focus-visible:ring-2 focus-visible:ring-focus data-[checked]:bg-ink/15 data-[checked]:text-ink [@media(hover:none)]:py-1.5',
+                  'flex-1 cursor-pointer rounded px-1 py-0.5 text-center text-xs text-muted outline-hidden hover:text-ink focus-visible:ring-2 focus-visible:ring-focus data-[checked]:bg-ink/15 data-[checked]:text-ink [@media(hover:none)]:py-1.5',
                 ),
               ],
               [h.span([...option.label], [option.value])],
@@ -195,187 +194,234 @@ const pillsView =
       ],
     )
 
-/** Land, Maritime or Air (AGeoP-21 Table B-1): choosing one sets the grids and the column order. */
-const profileSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  sectionView(
-    'Profile',
-    [
-      h.submodel({
-        slotId: model.profileRadioGroup.id,
-        model: model.profileRadioGroup,
-        view: ProfileRadioGroup.view,
-        viewInputs: {
-          options: profileOptions,
-          selectedValue: Option.some(model.values.profile),
-          ariaLabel: 'Profile',
-          orientation: 'Horizontal',
-          toView: pillsView('Use', h),
-        },
-        toParentMessage: message =>
-          Message.GotProfileRadioGroupMessage({ message }),
-      }),
-      h.p(
-        [h.Class('text-[11px] text-faint')],
-        [profiles[model.values.profile].description],
-      ),
-    ],
-    h,
-  )
+const noTitle = (): Option.Option<string> => Option.none()
 
-const mapSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  sectionView(
-    'Map',
-    [
-      h.submodel({
-        slotId: model.basemapRadioGroup.id,
-        model: model.basemapRadioGroup,
-        view: BasemapRadioGroup.view,
-        viewInputs: {
-          options: basemapOptions,
-          selectedValue: Option.some(model.values.basemap),
-          ariaLabel: 'Base map',
-          orientation: 'Horizontal',
-          toView: pillsView('Base map', h),
-        },
-        toParentMessage: message =>
-          Message.GotBasemapRadioGroupMessage({ message }),
-      }),
-      h.submodel({
-        slotId: model.projectionRadioGroup.id,
-        model: model.projectionRadioGroup,
-        view: ProjectionRadioGroup.view,
-        viewInputs: {
-          options: projectionOptions,
-          selectedValue: Option.some(model.values.projection),
-          ariaLabel: 'Projection',
-          orientation: 'Horizontal',
-          toView: pillsView('Projection', h),
-        },
-        toParentMessage: message =>
-          Message.GotProjectionRadioGroupMessage({ message }),
-      }),
-    ],
-    h,
-  )
+/** A profile's pill shows its description on hover. */
+const profileTitle = (profileId: ProfileId): Option.Option<string> =>
+  Option.some(profiles[profileId].description)
 
-const precisionSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  sectionView(
-    'Precision',
-    [
+const selectField = (control: Html, h: HtmlBuilder<Message>): Html =>
+  h.div([h.Class(FIELD_CLASS)], [control])
+
+type Field = Readonly<{ id: string; view: Html }>
+
+/** Every setting, in order. Land, Maritime or Air (AGeoP-21 Table B-1) comes first, as it changes the most. */
+const fields = (
+  model: Model,
+  h: HtmlBuilder<Message>,
+): ReadonlyArray<Field> => [
+  {
+    id: 'profile',
+    view: h.submodel({
+      slotId: model.profileRadioGroup.id,
+      model: model.profileRadioGroup,
+      view: ProfileRadioGroup.view,
+      viewInputs: {
+        options: profileOptions,
+        selectedValue: Option.some(model.values.profile),
+        ariaLabel: 'Profile',
+        orientation: 'Horizontal',
+        toView: pillsView('Profile', profileTitle, h),
+      },
+      toParentMessage: message =>
+        Message.GotProfileRadioGroupMessage({ message }),
+    }),
+  },
+  {
+    id: 'basemap',
+    view: h.submodel({
+      slotId: model.basemapRadioGroup.id,
+      model: model.basemapRadioGroup,
+      view: BasemapRadioGroup.view,
+      viewInputs: {
+        options: basemapOptions,
+        selectedValue: Option.some(model.values.basemap),
+        ariaLabel: 'Base map',
+        orientation: 'Horizontal',
+        toView: pillsView('Base map', noTitle, h),
+      },
+      toParentMessage: message =>
+        Message.GotBasemapRadioGroupMessage({ message }),
+    }),
+  },
+  {
+    id: 'projection',
+    view: h.submodel({
+      slotId: model.projectionRadioGroup.id,
+      model: model.projectionRadioGroup,
+      view: ProjectionRadioGroup.view,
+      viewInputs: {
+        options: projectionOptions,
+        selectedValue: Option.some(model.values.projection),
+        ariaLabel: 'Projection',
+        orientation: 'Horizontal',
+        toView: pillsView('Projection', noTitle, h),
+      },
+      toParentMessage: message =>
+        Message.GotProjectionRadioGroupMessage({ message }),
+    }),
+  },
+  {
+    id: 'mgrs-precision',
+    view: selectField(
       Select.view(
         {
           id: 'mgrs-precision',
-          label: 'MGRS',
+          label: 'MGRS precision',
           current: model.values.mgrsPrecision,
           options: mgrsPrecisionOptions,
           toMessage: precision => Message.SelectedMgrsPrecision({ precision }),
         },
         h,
       ),
+      h,
+    ),
+  },
+  {
+    id: 'gars-precision',
+    view: selectField(
       Select.view(
         {
           id: 'gars-precision',
-          label: 'GARS',
+          label: 'GARS precision',
           current: model.values.garsPrecision,
           options: garsPrecisionOptions,
           toMessage: precision => Message.SelectedGarsPrecision({ precision }),
         },
         h,
       ),
+      h,
+    ),
+  },
+  {
+    id: 'tile-zoom',
+    view: selectField(
       Select.view(
         {
           id: 'tile-zoom',
-          label: 'Map tile',
+          label: 'Map tile zoom',
           current: model.values.tileZoom,
           options: tileZoomOptions,
           toMessage: zoom => Message.SelectedTileZoom({ zoom }),
         },
         h,
       ),
-    ],
-    h,
-  )
-
-const ringsSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
-  sectionView(
-    'Range rings',
-    [
+      h,
+    ),
+  },
+  {
+    id: 'ring-spacing',
+    view: selectField(
       Select.view(
         {
           id: 'ring-spacing',
-          label: 'Spacing',
+          label: 'Ring spacing',
           current: model.values.ringSpacing,
           options: ringSpacingOptions,
           toMessage: spacing => Message.SelectedRingSpacing({ spacing }),
         },
         h,
       ),
+      h,
+    ),
+  },
+  {
+    id: 'ring-unit',
+    view: selectField(
       Select.view(
         {
           id: 'ring-unit',
-          label: 'Unit',
+          label: 'Ring unit',
           current: model.values.ringUnit,
           options: ringUnitOptions,
           toMessage: unit => Message.SelectedRingUnit({ unit }),
         },
         h,
       ),
-    ],
-    h,
+      h,
+    ),
+  },
+]
+
+const keyedFields = (
+  model: Model,
+  h: HtmlBuilder<Message>,
+): ReadonlyArray<Html> =>
+  Array.map(fields(model, h), field =>
+    h.keyed('div')(field.id, [h.Class('contents')], [field.view]),
   )
 
-const MENU_ANCHOR: Popover.ViewInputs['anchor'] = {
-  placement: 'bottom-end',
-  gap: 6,
-  padding: 8,
-}
+const PANEL_LABEL = 'Map settings'
+const DISCLOSURE_ID = 'map-settings'
 
-/** The settings button and its menu: profile, base map, projection, precision and range rings. */
-export const menuView = Submodel.defineView<Model, Message>((model, h) =>
-  h.submodel({
-    slotId: model.menu.id,
-    model: model.menu,
-    view: Popover.view,
-    viewInputs: {
-      anchor: MENU_ANCHOR,
-      ariaLabel: 'Map settings',
-      toView: ({ button, panel, backdrop, isVisible }) =>
-        h.div(
-          [h.Class('relative shrink-0 2xl:order-last')],
+/** Wide screens: the settings sit in a narrow column beside the map, one field under another. */
+export const sidePanelView = Submodel.defineView<Model, Message>((model, h) =>
+  h.aside(
+    [
+      h.AriaLabel(PANEL_LABEL),
+      h.Class(
+        'flex w-52 shrink-0 flex-col gap-3 overflow-y-auto border-l border-line bg-panel p-3 text-ink',
+      ),
+    ],
+    keyedFields(model, h),
+  ),
+)
+
+const toggledPanel = (isOpen: boolean): Message =>
+  Message.ToggledPanel({ isOpen })
+
+/** Compact screens: the toolbar button that opens and closes the settings strip. */
+export const panelButtonView = Submodel.defineView<Model, Message>((model, h) =>
+  Disclosure.view(
+    {
+      id: DISCLOSURE_ID,
+      isOpen: model.values.isPanelOpen,
+      onToggle: toggledPanel,
+      ariaLabel: PANEL_LABEL,
+      toView: ({ button }) =>
+        h.button(
           [
-            h.button(
-              [
-                ...button,
-                h.AriaLabel('Map settings'),
-                h.Title('Map settings'),
-                h.Class(
-                  'rounded-md p-1.5 text-muted outline-hidden hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-focus',
-                ),
-              ],
-              [Icon.settings(h)],
+            ...button,
+            h.Title(PANEL_LABEL),
+            h.Class(
+              'shrink-0 rounded-md p-1.5 text-muted outline-hidden hover:bg-ink/10 hover:text-ink focus-visible:ring-2 focus-visible:ring-focus data-[open]:bg-ink/15 data-[open]:text-ink',
             ),
-            ...(isVisible
-              ? [
-                  h.div([...backdrop, h.Class('fixed inset-0 z-20')]),
-                  h.div(
-                    [
-                      ...panel,
-                      h.Class(
-                        'z-30 grid w-64 gap-4 rounded-lg border border-line bg-panel p-3 text-ink shadow-lg shadow-black/40 outline-hidden',
-                      ),
-                    ],
-                    [
-                      profileSectionView(model, h),
-                      mapSectionView(model, h),
-                      precisionSectionView(model, h),
-                      ringsSectionView(model, h),
-                    ],
-                  ),
-                ]
-              : []),
           ],
+          [Icon.settings(h)],
         ),
     },
-    toParentMessage: message => Message.GotMenuMessage({ message }),
-  }),
+    h,
+  ),
+)
+
+/**
+ * Compact screens: the fields wrap under the toolbar in columns at least 10rem wide, two to a
+ * row on most phones, and scroll if they are taller than the space allows. The toolbar button opens and closes them.
+ */
+export const compactPanelView = Submodel.defineView<Model, Message>(
+  (model, h) =>
+    Disclosure.view(
+      {
+        id: DISCLOSURE_ID,
+        isOpen: model.values.isPanelOpen,
+        onToggle: toggledPanel,
+        toView: ({ panel, animatePanel }) =>
+          h.section(
+            [...panel, h.AriaLabel(PANEL_LABEL)],
+            [
+              animatePanel(
+                h.div(
+                  [
+                    h.Class(
+                      'grid max-h-[40vh] grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-x-3 gap-y-2 overflow-y-auto pb-1 pt-1 text-ink',
+                    ),
+                  ],
+                  keyedFields(model, h),
+                ),
+              ),
+            ],
+          ),
+      },
+      h,
+    ),
 )

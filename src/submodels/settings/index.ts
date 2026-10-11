@@ -1,6 +1,5 @@
 export { Message } from './message'
 export {
-  MENU_ID,
   Model,
   STORAGE_KEY,
   Values,
@@ -9,4 +8,9 @@ export {
   init,
 } from './model'
 export { SaveSettings, update } from './update'
-export { menuView, togglesView } from './view'
+export {
+  compactPanelView,
+  panelButtonView,
+  sidePanelView,
+  togglesView,
+} from './view'

@@ -4,7 +4,7 @@ import { Command, Update } from 'foldkit'
 import { modifyFields } from 'foldkit/struct'
 
 import { BrowserKeyValueStore } from '@effect/platform-browser'
-import { Popover, RadioGroup } from '@foldkit/ui'
+import { RadioGroup } from '@foldkit/ui'
 
 import { GridToggles, MapStyle } from '../../core/domain'
 import { type ProfileId, gridTogglesFor } from '../../core/systems/profiles'
@@ -31,19 +31,6 @@ const updateValues = (
 }
 
 type Step = Update.Step<Model, Message>
-
-const foldMenuOutMessage = Popover.OutMessage.match<Step>({
-  Opened: () => stepModel => ({ model: stepModel }),
-  Closed: () => stepModel => ({ model: stepModel }),
-})
-
-const foldMenu = Update.foldChild({
-  update: Popover.update,
-  read: (model: Model) => Option.some(model.menu),
-  write: (model, nextMenu) => modifyFields(model, { menu: () => nextMenu }),
-  toParentMessage: message => Message.GotMenuMessage({ message }),
-  foldOutMessage: foldMenuOutMessage,
-})
 
 /** Choosing a profile also sets every grid toggle to that profile's grids. */
 const foldProfileRadioGroupOutMessage = RadioGroup.OutMessage.match<
@@ -140,7 +127,8 @@ export const update = (model: Model, message: Message) =>
     SelectedRingUnit: ({ unit }) =>
       updateValues(model, modifyFields({ ringUnit: () => unit })),
 
-    GotMenuMessage: ({ message }) => foldMenu(model, message),
+    ToggledPanel: ({ isOpen }) =>
+      updateValues(model, modifyFields({ isPanelOpen: () => isOpen })),
 
     GotProfileRadioGroupMessage: ({ message }) =>
       foldProfileRadioGroup(model, message),

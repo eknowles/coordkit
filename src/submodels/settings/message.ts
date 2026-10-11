@@ -1,7 +1,7 @@
 import { Schema } from 'effect'
 import { defineMessageUnion } from 'foldkit/message'
 
-import { Popover, RadioGroup } from '@foldkit/ui'
+import { RadioGroup } from '@foldkit/ui'
 
 import { RangeRings } from '../../core/domain'
 import { GarsPrecision } from '../../core/systems/gars'
@@ -19,7 +19,7 @@ export const Message = defineMessageUnion({
   SelectedTileZoom: { zoom: TileZoom },
   SelectedRingSpacing: { spacing: RangeRings.RingSpacing },
   SelectedRingUnit: { unit: RangeRings.RingUnit },
-  GotMenuMessage: { message: Popover.Message },
+  ToggledPanel: { isOpen: Schema.Boolean },
   GotProfileRadioGroupMessage: { message: RadioGroup.Message },
   GotBasemapRadioGroupMessage: { message: RadioGroup.Message },
   GotProjectionRadioGroupMessage: { message: RadioGroup.Message },

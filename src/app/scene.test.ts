@@ -2,7 +2,6 @@ import { Option } from 'effect'
 import {
   Command,
   CustomElement,
-  Mount,
   change,
   click,
   expect,
@@ -16,7 +15,7 @@ import {
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
-import { Popover, RadioGroup } from '@foldkit/ui'
+import { RadioGroup } from '@foldkit/ui'
 
 import { formatters, grids } from '../core/systems/registry'
 import { coordkitMap } from '../map'
@@ -42,17 +41,6 @@ const resolveReplaceUrl = Command.resolve(
   ReplaceUrl,
   Message.SucceededReplaceUrl(),
 )
-
-const resolveMenuMounts = [
-  Mount.resolve(
-    Popover.AnchorPopover,
-    Popover.Message.CompletedAnchorPopover(),
-  ),
-  Mount.resolve(
-    Popover.PortalPopoverBackdrop,
-    Popover.Message.CompletedPortalPopoverBackdrop(),
-  ),
-]
 
 const resolveSave = Command.resolve(
   Settings.SaveSettings,
@@ -186,22 +174,54 @@ describe('overlay toggles', () => {
   })
 })
 
-describe('settings menu', () => {
-  test('opens from the settings button with the base map, projection, precision and ring options', () => {
+describe('settings panel', () => {
+  test('wide screens show the profile, base map, projection, precision and ring options beside the map', () => {
     scene(
       app,
       given(readyModel),
-      expect(role('radiogroup', { name: 'Base map' })).toBeAbsent(),
-      click(role('button', { name: 'Map settings' })),
-      ...resolveMenuMounts,
+      expect(role('complementary', { name: 'Map settings' })).toExist(),
+      expect(role('button', { name: 'Map settings' })).toBeAbsent(),
+      expect(role('radiogroup', { name: 'Profile' })).toExist(),
       expect(role('radiogroup', { name: 'Base map' })).toExist(),
       expect(role('radiogroup', { name: 'Projection' })).toExist(),
       expect(role('radio', { name: 'Satellite' })).toHaveAttr(
         'aria-checked',
         'true',
       ),
-      ...['MGRS', 'GARS', 'Spacing', 'Unit'].map(name =>
-        expect(role('combobox', { name })).toExist(),
+      ...[
+        'MGRS precision',
+        'GARS precision',
+        'Map tile zoom',
+        'Ring spacing',
+        'Ring unit',
+      ].map(name => expect(role('combobox', { name })).toExist()),
+    )
+  })
+
+  test('compact screens show the settings as a strip that the toolbar button closes and opens', () => {
+    const compactModel: Model = modifyFields(readyModel, {
+      layout: () => 'Compact',
+    })
+    scene(
+      app,
+      given(compactModel),
+      expect(role('complementary', { name: 'Map settings' })).toBeAbsent(),
+      expect(role('button', { name: 'Map settings' })).toHaveAttr(
+        'aria-expanded',
+        'true',
+      ),
+      expect(role('radiogroup', { name: 'Profile' })).toExist(),
+      click(role('button', { name: 'Map settings' })),
+      resolveSave,
+      expect(role('button', { name: 'Map settings' })).toHaveAttr(
+        'aria-expanded',
+        'false',
+      ),
+      click(role('button', { name: 'Map settings' })),
+      resolveSave,
+      expect(role('button', { name: 'Map settings' })).toHaveAttr(
+        'aria-expanded',
+        'true',
       ),
     )
   })
@@ -210,8 +230,6 @@ describe('settings menu', () => {
     scene(
       app,
       given(readyModel),
-      click(role('button', { name: 'Map settings' })),
-      ...resolveMenuMounts,
       click(role('radio', { name: 'Maritime' })),
       Command.resolveAll(
         [RadioGroup.FocusOption, RadioGroup.Message.CompletedFocusOption()],
@@ -234,9 +252,7 @@ describe('settings menu', () => {
     scene(
       app,
       given(cueModel),
-      click(role('button', { name: 'Map settings' })),
-      ...resolveMenuMounts,
-      change(label('MGRS'), '5'),
+      change(label('MGRS precision'), '5'),
       resolveSave,
       expect(
         role('button', { name: /^Cue MGRS: 30U XC \d{5} \d{5}\./ }),

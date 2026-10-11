@@ -39,11 +39,11 @@
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
 - **Find my location.** The location button asks the browser for your position, then sets the cue there.
 - **Plus Codes.** CoordKit reads full codes only, because a short code such as `GV4C+WV` needs a reference location. Codes match Google's reference implementation.
-- **Web map tiles.** The readout gives the tile at the zoom level that you set in **Map settings > Precision > Map tile**. The map grid shows the tiles one level deeper than the map zoom.
+- **Web map tiles.** The readout gives the tile at the zoom level that you set in **Map settings > Map tile zoom**. The map grid shows the tiles one level deeper than the map zoom.
 - **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres. Use the **Rings** button to show or hide them.
 - **Base maps.** Satellite imagery, a dark map or a light map. Grid colours and label halos change to suit each one.
 - **Web Mercator or globe.** Web Mercator shows what most web maps show. The globe shows grids without distortion.
-- **Map settings.** The settings button in the toolbar opens the profile, base map, projection, precision and range ring settings.
+- **Map settings.** The profile, base map, projection, precision and range ring settings are always on screen. On a wide screen, they are in a column to the right of the map. On a phone, they are below the toolbar, two or more to a row. Use the settings button to close or open them.
 - **Defaults.** CoordKit starts with the Land profile, on satellite imagery in Web Mercator, with UTM zones, the MGRS grid, the graticule, labels and range rings. MGRS shows 100 kilometre squares and GARS shows 30′ cells. The browser keeps your changes.
 - **Install and offline use.** Install CoordKit as an app. After the first visit, it works without a network.
 - **Share.** The URL holds the map view and the cue.

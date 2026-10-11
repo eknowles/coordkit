@@ -180,7 +180,7 @@ classDiagram
     }
     class SettingsModel["Settings.Model"] {
         values: Values
-        menu: Popover.Model
+        profileRadioGroup: RadioGroup.Model
         basemapRadioGroup: RadioGroup.Model
         projectionRadioGroup: RadioGroup.Model
     }
@@ -292,26 +292,32 @@ flowchart TB
 
     goto["h.submodel: GoTo.view"]
     locate["h.submodel: GoTo.locateButtonView"]
-    menu["h.submodel: Settings.menuView"]
+    button["h.submodel: Settings.panelButtonView (Compact only)"]
     toggles["h.submodel: Settings.togglesView"]
+    strip["h.submodel: Settings.compactPanelView (Compact only)"]
+    side["h.submodel: Settings.sidePanelView (Wide only)"]
     cells["h.submodel: Copy.view (one for each cell)"]
 
     root --> toolbar
     root --> main
     root --> table
+    root --> side
     main --> map
     main --> error
     main --> sheet
     toolbar --> goto
     toolbar --> locate
-    toolbar --> menu
+    toolbar --> button
     toolbar --> toggles
+    toolbar --> strip
     table --> cells
     sheet --> cells
 ```
 
-`model.layout` selects the readout. A `Wide` layout shows the table below the
-map. A `Compact` layout shows a sheet over the map.
+`model.layout` selects the readout and the settings. A `Wide` layout shows the
+table below the map, and the settings in a column beside the map. A `Compact`
+layout shows a sheet over the map, and the settings in a strip below the
+toolbar. The settings button opens and closes the strip.
 
 ## Submodels
 
@@ -320,7 +326,7 @@ CoordKit has three Submodels. Each one is a folder with `model.ts`,
 
 | Submodel | Folder                    | Responsibility                                                             |
 | -------- | ------------------------- | -------------------------------------------------------------------------- |
-| Settings | `src/submodels/settings/` | Grid toggles, base map, projection, precisions and range rings. Saves them |
+| Settings | `src/submodels/settings/` | Profile, grid toggles, base map, projection, precisions and range rings. Saves them |
 | GoTo     | `src/submodels/goTo/`     | The search field, "Find my location", and the status line for both         |
 | Copy     | `src/submodels/copy/`     | Copies a readout cell to the clipboard and shows "Copied" or "Copy failed" |
 
@@ -353,8 +359,10 @@ flowchart TB
 - **In `update`**, `Update.foldChild` reads the Submodel Model, runs the
   Submodel `update`, writes the result back, and wraps the Submodel Commands.
 
-The Settings Submodel contains Submodels from `@foldkit/ui`: a `Popover` for
-the menu and two `RadioGroup`s. It connects them with the same pattern.
+The Settings Submodel contains three `RadioGroup` Submodels from `@foldkit/ui`,
+for the profile, the base map and the projection. It connects them with the
+same pattern. The strip on compact screens uses the `Disclosure` view from
+`@foldkit/ui`. The open state is in the saved settings (`isPanelOpen`).
 
 ### OutMessages
 

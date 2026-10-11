@@ -1,6 +1,6 @@
 import { Effect, Option, Schema } from 'effect'
 
-import { Popover, RadioGroup } from '@foldkit/ui'
+import { RadioGroup } from '@foldkit/ui'
 
 import { GridToggles, MapStyle, RangeRings } from '../../core/domain'
 import { GarsPrecision } from '../../core/systems/gars'
@@ -30,6 +30,10 @@ export const Values = Schema.Struct({
   isRangeRingsVisible: Schema.Boolean,
   ringSpacing: RangeRings.RingSpacing,
   ringUnit: RangeRings.RingUnit,
+  /** Whether the settings strip under the toolbar is open on compact screens. Wide screens always show the panel. */
+  isPanelOpen: Schema.Boolean.pipe(
+    Schema.withDecodingDefaultKey(Effect.succeed(true)),
+  ),
 })
 export type Values = typeof Values.Type
 
@@ -45,6 +49,7 @@ export const defaultValues: Values = {
   isRangeRingsVisible: true,
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',
+  isPanelOpen: true,
 }
 
 /** Bump the version when the Values shape changes; old values then fall back to the defaults. */
@@ -55,18 +60,14 @@ export const ValuesJsonString = Schema.fromJsonString(
 
 export const Model = Schema.Struct({
   values: Values,
-  menu: Popover.Model,
   profileRadioGroup: RadioGroup.Model,
   basemapRadioGroup: RadioGroup.Model,
   projectionRadioGroup: RadioGroup.Model,
 })
 export type Model = typeof Model.Type
 
-export const MENU_ID = 'map-settings'
-
 export const init = (maybeSavedValues: Option.Option<Values>): Model => ({
   values: Option.getOrElse(maybeSavedValues, () => defaultValues),
-  menu: Popover.init({ id: MENU_ID }),
   profileRadioGroup: RadioGroup.init({ id: 'profile' }),
   basemapRadioGroup: RadioGroup.init({ id: 'basemap' }),
   projectionRadioGroup: RadioGroup.init({ id: 'projection' }),
