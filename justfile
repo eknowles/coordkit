@@ -48,6 +48,19 @@ build:
 publish-coverage:
     bun scripts/coverage-report.ts
 
+# Clone the Foldkit source for the installed foldkit version, as a read-only reference (not committed)
+foldkit-source dir="repos/foldkit":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tag="foldkit@$(node -p "require('./node_modules/foldkit/package.json').version")"
+    if [ -d "{{dir}}/.git" ] && git -C "{{dir}}" tag --points-at HEAD | grep -qxF "$tag"; then
+      echo "{{dir}} is already at $tag"
+      exit 0
+    fi
+    rm -rf "{{dir}}"
+    git clone --quiet --depth 1 --branch "$tag" https://github.com/foldkit/foldkit.git "{{dir}}"
+    echo "Cloned $tag into {{dir}}"
+
 # Serve the built site locally
 preview port="4173": build
     bun run preview --port {{port}}

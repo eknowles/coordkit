@@ -5,3 +5,6 @@ dist
 .DS_Store
 coverage
 .tmp
+
+# Foldkit source for reference; fetch it with `just foldkit-source`
+repos/

@@ -10,6 +10,10 @@ subtree_prompted: true
 
 ## Project Notes
 
+### Foldkit source
+
+`repos/foldkit` is gitignored, not a committed subtree. Run `just foldkit-source` to shallow-clone the Foldkit tag that matches the installed `foldkit` package; run it again after upgrading Foldkit. Where `FOLDKIT.md` says to add or pull the subtree, use this recipe instead. The rest of `FOLDKIT.md` applies as written: read the clone for examples and API detail, and never import from it.
+
 ### Layout
 
 | Folder                                    | Role                                                                                                                                                                 | May import                                    |
