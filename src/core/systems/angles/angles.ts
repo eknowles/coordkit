@@ -30,7 +30,11 @@ function splitDMS(value: number, secDigits: number): [number, number, number] {
 }
 
 /** The hemisphere letter. A value that rounds to zero is N or E, so the text reads back the same. */
-function hemi(value: number, axis: 'lat' | 'lon', isZero: boolean): string {
+export function hemi(
+  value: number,
+  axis: 'lat' | 'lon',
+  isZero: boolean,
+): string {
   const isNegative = value < 0 && !isZero
   if (axis === 'lat') return isNegative ? 'S' : 'N'
   return isNegative ? 'W' : 'E'

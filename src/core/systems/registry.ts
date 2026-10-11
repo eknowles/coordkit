@@ -55,6 +55,7 @@ export const parsers: ReadonlyArray<Parser> = [
 /** Drawn in order, so later grids sit on top; their labels win collisions. */
 export const grids: ReadonlyArray<Grid> = [
   Graticule.grid,
+  Angles.ddmGrid,
   Tile.grid,
   PlusCode.grid,
   Georef.grid,

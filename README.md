@@ -24,7 +24,7 @@
 - **Cursor and cue.** Move the cross-shaped cursor over the map, and every system shows the cursor position. Click the map to set the cue. The cue stays in place, so you can compare the two positions.
 - **Copy.** Click a value in the readout to copy it.
 - **Phones.** The readout is a sheet of cards at the bottom of the map. Swipe left and right to see each system. The sheet opens when you set the cue, and closes when you clear it.
-- **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells and a latitude and longitude graticule. The grid spacing changes with the zoom level.
+- **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells, a latitude and longitude graticule, and a degrees and minutes grid as on a nautical chart. The grid spacing changes with the zoom level. The degrees and minutes grid has minute ticks along the map edges, and outlines the one-minute cell around the cue.
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
 - **Find my location.** The location button asks the browser for your position, then sets the cue there.
 - **Plus Codes.** CoordKit reads full codes only, because a short code such as `GV4C+WV` needs a reference location. Codes match Google's reference implementation.
@@ -43,7 +43,7 @@
 | ------------------------------------------ | :-----: | :----: | :-------: | -------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Decimal degrees (DD)                       |    ✓    |   ✓    | graticule | `51.507351, -0.127758`                 | [Wikipedia](https://en.wikipedia.org/wiki/Decimal_degrees)                                 |
 | Degrees, minutes, seconds (DMS)            |    ✓    |   ✓    | graticule | `51° 30′ 26.46″ N, 000° 07′ 39.93″ W`  | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
-| Degrees, decimal minutes (DDM)             |    ✓    |   ✓    | graticule | `51° 30.4411′ N, 000° 07.6655′ W`      | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
+| Degrees, decimal minutes (DDM)             |    ✓    |   ✓    |     ✓     | `51° 30.4411′ N, 000° 07.6655′ W`      | [Wikipedia](https://en.wikipedia.org/wiki/Geographic_coordinate_system)                    |
 | Universal Transverse Mercator (UTM)        |    ✓    |   ✓    |   zones   | `30U 699319E 5710158N`                 | [Wikipedia](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) |
 | Universal Polar Stereographic (UPS)        |    ✓    |   ✓    |   zones   | `UPS N 2000000E 2000000N`              | [Wikipedia](https://en.wikipedia.org/wiki/Universal_polar_stereographic_coordinate_system) |
 | Military Grid Reference System (MGRS)      |    ✓    |   ✓    |     ✓     | `30U XC 99319 10158`                   | [Wikipedia](https://en.wikipedia.org/wiki/Military_Grid_Reference_System)                  |
