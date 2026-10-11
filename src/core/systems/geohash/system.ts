@@ -1,6 +1,7 @@
 import { Option, pipe } from 'effect'
 
 import { cellBox } from '../cell'
+import { isMgrs } from '../mgrs/mgrs'
 import { makeParser } from '../parser'
 import type { Formatter, Parser } from '../types'
 import { fromGeohash, isGeohash, toGeohash } from './geohash'
@@ -9,7 +10,14 @@ const LENGTH = 9
 const PREFIX = /^(geohash|gh):\s*/i
 const HAS_LETTER = /[a-z]/i
 
-/** A hash made only of digits is copied with the "gh:" prefix, so the search can read it back. */
+/**
+ * The search reads a hash back only if no earlier parser claims it, so a hash made only of
+ * digits, or one that is also an MGRS reference (`bjb125858` is south polar zone B, square JB),
+ * is copied with the "gh:" prefix.
+ */
+const isAmbiguous = (hash: string): boolean =>
+  !HAS_LETTER.test(hash) || isMgrs(hash)
+
 export const formatter: Formatter = {
   id: 'Geohash',
   label: 'Geohash',
@@ -18,7 +26,7 @@ export const formatter: Formatter = {
     const hash = toGeohash(point, LENGTH)
     return {
       lines: [hash, `${LENGTH} characters`],
-      copyText: HAS_LETTER.test(hash) ? hash : `gh:${hash}`,
+      copyText: isAmbiguous(hash) ? `gh:${hash}` : hash,
     }
   },
 }

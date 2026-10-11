@@ -18,3 +18,16 @@ test('a hash made only of digits is copied with the gh: prefix and reads back', 
   expect(Option.isSome(parser.parse(reading.copyText))).toBe(true)
   expect(Option.isSome(parser.parse('000000000'))).toBe(false)
 })
+
+test('a hash that is also an MGRS reference is copied with the gh: prefix', () => {
+  const options = { mgrsPrecision: 5, garsPrecision: 5, tileZoom: 12 } as const
+  const reading = formatter.format(
+    { lat: 77.58333333333333, lon: -180 },
+    options,
+  )
+  expect(reading.lines[0]).toBe('bjb125858')
+  expect(reading.copyText).toBe('gh:bjb125858')
+  expect(
+    formatter.format({ lat: 51.5073509, lon: -0.1277583 }, options).copyText,
+  ).toBe('gcpvj0dup')
+})
