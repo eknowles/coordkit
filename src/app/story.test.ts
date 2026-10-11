@@ -185,7 +185,9 @@ describe('go to', () => {
             }),
           }),
         )
-        expect(goTo.status).toEqual(GoTo.Status.Found({ kind: 'DD' }))
+        expect(goTo.status).toEqual(
+          GoTo.Status.Found({ kind: 'DD', maybeCaution: Option.none() }),
+        )
       }),
       resolveReplaceUrl,
     )

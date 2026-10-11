@@ -3,7 +3,8 @@ import { Array, Option } from 'effect'
 import type { GridToggles, MapStyle, RangeRings } from '../core/domain'
 import type { LatLon } from '../core/geo/ellipsoid'
 import type { Box, GridGeometry } from '../core/geo/geometry'
-import { grids, isGridEnabled } from '../core/systems/registry'
+import { type ProfileId, gridDrawOrderFor } from '../core/systems/profiles'
+import { isGridEnabled } from '../core/systems/registry'
 import type { Grid, MapTone, SystemOptions } from '../core/systems/types'
 import { basemapTone } from './basemaps'
 import { CUE_COLOR, cueCellFeatures, cueMarkerFeatures } from './cue'
@@ -22,6 +23,8 @@ export type OverlayInput = Readonly<{
   ringSpacing: RangeRings.RingSpacing
   ringUnit: RangeRings.RingUnit
   basemap: MapStyle.Basemap
+  /** Sets the drawing order: the profile's grids draw on top. */
+  profile: ProfileId
 }>
 
 /** What the map's overlay layers show: lines, the cue marker, and labels. */
@@ -49,7 +52,7 @@ type BuiltGrid = Readonly<{ grid: Grid; geometry: GridGeometry }>
 
 const MIN_LINE_WIDTH = 0.5
 
-/** Grids later in the registry draw on top, so their lines get the higher rank. */
+/** Grids later in the drawing order draw on top, so their lines get the higher rank. */
 const gridLineFeatures = (
   built: ReadonlyArray<BuiltGrid>,
   tone: MapTone,
@@ -65,7 +68,7 @@ const gridLineFeatures = (
     ),
   )
 
-/** Grids later in the registry draw on top, so their labels get the lower sort key and win collisions. */
+/** Grids later in the drawing order draw on top, so their labels get the lower sort key and win collisions. */
 const gridLabelFeatures = (
   built: ReadonlyArray<BuiltGrid>,
   tone: MapTone,
@@ -102,7 +105,9 @@ const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
 export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
   const box = gridBox(input.bounds, input.zoom)
   const built = Array.map(
-    Array.filter(grids, grid => isGridEnabled(input.gridToggles, grid)),
+    Array.filter(gridDrawOrderFor(input.profile), grid =>
+      isGridEnabled(input.gridToggles, grid),
+    ),
     grid => ({ grid, geometry: grid.build(box, input.zoom) }),
   )
   const tone = basemapTone[input.basemap]

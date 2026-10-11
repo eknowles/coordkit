@@ -5,14 +5,25 @@ import type { Html, HtmlBuilder } from 'foldkit/html'
 import type { Message } from '@/message'
 import type { Model } from '@/model'
 
+import { DATUM_LABEL } from '../../core/geo/ellipsoid'
 import * as Cell from './cell'
-import { type ReadoutColumn, columns } from './columns'
+import { type ReadoutColumn, columnsFor } from './columns'
 import { positionLabelView, systemLabelView } from './header'
 import { type ReadoutRow, availableRows } from './rows'
 
 const CAPTION = 'The cursor and cue positions in each coordinate system'
 const stickyLeft = 'sticky left-0 z-10 bg-panel'
 const headingText = 'font-sans text-[11px] font-medium text-muted'
+
+/** Every reading is on one datum, so the readout names it once. */
+const datumView = (h: HtmlBuilder<Message>): Html =>
+  h.span(
+    [
+      h.Class(headingText),
+      h.Title(`All positions are on the ${DATUM_LABEL} datum`),
+    ],
+    [DATUM_LABEL],
+  )
 
 const readoutTableView = (
   head: Html,
@@ -49,6 +60,7 @@ const cellView = (
  */
 export const tableView = (model: Model, h: HtmlBuilder<Message>): Html => {
   const rows = availableRows(model)
+  const columns = columnsFor(model.settings.values.profile)
   return h.section(
     [
       h.AriaLabel('Coordinate readout'),
@@ -60,8 +72,11 @@ export const tableView = (model: Model, h: HtmlBuilder<Message>): Html => {
           [],
           [
             h.th(
-              [h.Scope('col'), h.Class(clsx(stickyLeft, 'w-28'))],
-              [h.span([h.Class('sr-only')], ['Position'])],
+              [
+                h.Scope('col'),
+                h.Class(clsx(stickyLeft, 'w-28 px-3 pb-1 pt-2 text-left')),
+              ],
+              [h.span([h.Class('sr-only')], ['Position. ']), datumView(h)],
             ),
             ...Array.map(columns, column =>
               h.keyed('th')(
@@ -150,6 +165,7 @@ const cardView = (
 /** Compact screens get a sheet over the map, one card per system, which slides up while there is a position to show. */
 export const sheetView = (model: Model, h: HtmlBuilder<Message>): Html => {
   const rows = availableRows(model)
+  const columns = columnsFor(model.settings.values.profile)
   const isOpen = Array.some(rows, row => Option.isSome(row.point(model)))
   return h.section(
     [
@@ -167,13 +183,16 @@ export const sheetView = (model: Model, h: HtmlBuilder<Message>): Html => {
     [
       h.div(
         [h.Class('flex items-center gap-4 px-3 pb-1 pt-2 text-xs font-medium')],
-        Array.map(rows, row =>
-          h.keyed('div')(
-            row.id,
-            [h.Class('flex flex-1 items-center')],
-            [positionLabelView(row, model, h)],
+        [
+          ...Array.map(rows, row =>
+            h.keyed('div')(
+              row.id,
+              [h.Class('flex flex-1 items-center')],
+              [positionLabelView(row, model, h)],
+            ),
           ),
-        ),
+          datumView(h),
+        ],
       ),
       h.ul(
         [

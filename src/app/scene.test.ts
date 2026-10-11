@@ -16,7 +16,7 @@ import {
 import { modifyFields } from 'foldkit/struct'
 import { describe, test } from 'vitest'
 
-import { Popover } from '@foldkit/ui'
+import { Popover, RadioGroup } from '@foldkit/ui'
 
 import { formatters, grids } from '../core/systems/registry'
 import { coordkitMap } from '../map'
@@ -206,6 +206,30 @@ describe('settings menu', () => {
     )
   })
 
+  test('choosing the Maritime profile turns on the chart grid and MGRS ticks', () => {
+    scene(
+      app,
+      given(readyModel),
+      click(role('button', { name: 'Map settings' })),
+      ...resolveMenuMounts,
+      click(role('radio', { name: 'Maritime' })),
+      Command.resolveAll(
+        [RadioGroup.FocusOption, RadioGroup.Message.CompletedFocusOption()],
+        [Settings.SaveSettings, Settings.Message.SucceededSaveSettings()],
+      ),
+      ...(
+        [
+          ['DDM', 'true'],
+          ['MGRS ticks', 'true'],
+          ['MGRS', 'false'],
+          ['UTM zones', 'false'],
+        ] as const
+      ).map(([name, isOn]) =>
+        expect(role('switch', { name })).toHaveAttr('aria-checked', isOn),
+      ),
+    )
+  })
+
   test('a select changes the MGRS precision shown in the readout', () => {
     scene(
       app,
@@ -221,15 +245,21 @@ describe('settings menu', () => {
   })
 })
 
+describe('datum', () => {
+  test('the readout names the WGS 84 datum once', () => {
+    scene(app, given(cueModel), expect(text('WGS 84')).toExist())
+  })
+})
+
 describe('go to', () => {
-  test('searching for a GARS cell reports the format and sets the cue', () => {
+  test('searching for a GARS cell reports the format, warns that it is an area, and sets the cue', () => {
     scene(
       app,
       given(readyModel),
       type(label('Go to a coordinate (sets the cue)'), '361HN37'),
       click(role('button', { name: 'Go' })),
       resolveReplaceUrl,
-      expect(text('Read as GARS')).toExist(),
+      expect(text('GARS: an area, not a position')).toExist(),
       expect(role('button', { name: /^Cue GARS: 361HN/ })).toExist(),
     )
   })

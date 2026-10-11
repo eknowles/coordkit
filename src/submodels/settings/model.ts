@@ -5,6 +5,7 @@ import { Popover, RadioGroup } from '@foldkit/ui'
 import { GridToggles, MapStyle, RangeRings } from '../../core/domain'
 import { GarsPrecision } from '../../core/systems/gars'
 import { MgrsPrecision } from '../../core/systems/mgrs'
+import { DEFAULT_PROFILE, ProfileId } from '../../core/systems/profiles'
 import { defaultGridToggles } from '../../core/systems/registry'
 import { TileZoom } from '../../core/systems/tile'
 
@@ -12,6 +13,10 @@ const DEFAULT_TILE_ZOOM = 12
 
 /** The settings the browser keeps between visits. */
 export const Values = Schema.Struct({
+  /** Settings saved before profiles existed decode as the default profile. */
+  profile: ProfileId.pipe(
+    Schema.withDecodingDefaultKey(Effect.succeed(DEFAULT_PROFILE)),
+  ),
   grids: GridToggles.GridToggles,
   isGridLabelsVisible: Schema.Boolean,
   basemap: MapStyle.Basemap,
@@ -29,6 +34,7 @@ export const Values = Schema.Struct({
 export type Values = typeof Values.Type
 
 export const defaultValues: Values = {
+  profile: DEFAULT_PROFILE,
   grids: defaultGridToggles(),
   isGridLabelsVisible: true,
   basemap: 'Satellite',
@@ -50,6 +56,7 @@ export const ValuesJsonString = Schema.fromJsonString(
 export const Model = Schema.Struct({
   values: Values,
   menu: Popover.Model,
+  profileRadioGroup: RadioGroup.Model,
   basemapRadioGroup: RadioGroup.Model,
   projectionRadioGroup: RadioGroup.Model,
 })
@@ -60,6 +67,7 @@ export const MENU_ID = 'map-settings'
 export const init = (maybeSavedValues: Option.Option<Values>): Model => ({
   values: Option.getOrElse(maybeSavedValues, () => defaultValues),
   menu: Popover.init({ id: MENU_ID }),
+  profileRadioGroup: RadioGroup.init({ id: 'profile' }),
   basemapRadioGroup: RadioGroup.init({ id: 'basemap' }),
   projectionRadioGroup: RadioGroup.init({ id: 'projection' }),
 })

@@ -62,6 +62,7 @@ export const grids: ReadonlyArray<Grid> = [
   Gars.grid,
   Utm.grid,
   Mgrs.grid,
+  Mgrs.ticksGrid,
 ]
 
 export const parseCoordinate = (text: string): Option.Option<ParseResult> =>

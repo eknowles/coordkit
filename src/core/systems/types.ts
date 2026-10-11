@@ -35,6 +35,8 @@ export interface ParseResult {
   readonly point: LatLon
   /** The area the reference covers, when it names a cell rather than a point. */
   readonly maybeBounds: Option.Option<Box>
+  /** A warning to show with the result, for a system that must not be read as a position. */
+  readonly maybeCaution: Option.Option<string>
 }
 
 export interface Parser {

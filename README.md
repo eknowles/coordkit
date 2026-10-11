@@ -25,6 +25,17 @@
 - **Copy.** Click a value in the readout to copy it.
 - **Phones.** The readout is a sheet of cards at the bottom of the map. Swipe left and right to see each system. The sheet opens when you set the cue, and closes when you clear it.
 - **Grids.** The map can draw UTM zones, the MGRS grid, GARS cells, a latitude and longitude graticule, and a degrees and minutes grid as on a nautical chart. The grid spacing changes with the zoom level. The degrees and minutes grid has minute ticks along the map edges, and outlines the one-minute cell around the cue.
+- **MGRS ticks.** As on a nautical chart, MGRS can show as ticks on the map edges, labelled with their grid digits, and crosses at the grid intersections, in place of full lines.
+- **Profiles.** Choose **Land**, **Maritime** or **Air** in **Map settings > Profile**. These are the three domains in NATO AGeoP-21. A profile turns on the grids for that domain and puts its systems first in the toolbar and the readout. Its grids also draw on top.
+
+  | Profile  | First in the readout    | Grids that it turns on                |
+  | -------- | ----------------------- | ------------------------------------- |
+  | Land     | MGRS, UTM               | Graticule, UTM zones, MGRS            |
+  | Maritime | DDM, GARS, MGRS         | Degrees and minutes, GARS, MGRS ticks |
+  | Air      | GEOREF, GARS, MGRS, DDM | Graticule, GEOREF, GARS               |
+
+- **Datum.** All positions are on WGS 84. The readout shows the datum. ECEF positions are on the ellipsoid, at a height of 0 m.
+- **GARS is an area.** A GARS reference names a cell, not a position. The readout and the search status tell you this.
 - **Search.** Type a coordinate in any supported format. The map moves to it and sets the cue.
 - **Find my location.** The location button asks the browser for your position, then sets the cue there.
 - **Plus Codes.** CoordKit reads full codes only, because a short code such as `GV4C+WV` needs a reference location. Codes match Google's reference implementation.
@@ -32,8 +43,8 @@
 - **Range rings.** The map draws six rings around the cue, in nautical miles or kilometres. Use the **Rings** button to show or hide them.
 - **Base maps.** Satellite imagery, a dark map or a light map. Grid colours and label halos change to suit each one.
 - **Web Mercator or globe.** Web Mercator shows what most web maps show. The globe shows grids without distortion.
-- **Map settings.** The settings button in the toolbar opens the base map, projection, precision and range ring settings.
-- **Defaults.** CoordKit starts on satellite imagery in Web Mercator, with UTM zones, the MGRS grid, the graticule, labels and range rings. MGRS shows 100 kilometre squares and GARS shows 30′ cells. The browser keeps your changes.
+- **Map settings.** The settings button in the toolbar opens the profile, base map, projection, precision and range ring settings.
+- **Defaults.** CoordKit starts with the Land profile, on satellite imagery in Web Mercator, with UTM zones, the MGRS grid, the graticule, labels and range rings. MGRS shows 100 kilometre squares and GARS shows 30′ cells. The browser keeps your changes.
 - **Install and offline use.** Install CoordKit as an app. After the first visit, it works without a network.
 - **Share.** The URL holds the map view and the cue.
 

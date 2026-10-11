@@ -4,6 +4,9 @@ export const WGS84 = {
   f: 1 / 298.257223563,
 } as const
 
+/** The datum every position in the app is on. AGeoP-21 (D.2.1) asks that the datum is always stated. */
+export const DATUM_LABEL = 'WGS 84'
+
 export const b = WGS84.a * (1 - WGS84.f)
 export const e2 = WGS84.f * (2 - WGS84.f)
 export const e = Math.sqrt(e2)

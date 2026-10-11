@@ -8,7 +8,12 @@ import { Popover, RadioGroup } from '@foldkit/ui'
 import type { MapStyle, RangeRings } from '../../core/domain'
 import type { GarsPrecision } from '../../core/systems/gars'
 import type { MgrsPrecision } from '../../core/systems/mgrs'
-import { grids, isGridEnabled } from '../../core/systems/registry'
+import {
+  type ProfileId,
+  gridSwitchesFor,
+  profiles,
+} from '../../core/systems/profiles'
+import { isGridEnabled } from '../../core/systems/registry'
 import { TileZoom } from '../../core/systems/tile'
 import * as Icon from '../../views/ui/icon'
 import * as Select from '../../views/ui/select'
@@ -16,7 +21,11 @@ import * as Swatch from '../../views/ui/swatch'
 import * as Toggle from '../../views/ui/toggle'
 import { Message } from './message'
 import type { Model } from './model'
-import { BasemapRadioGroup, ProjectionRadioGroup } from './radioGroup'
+import {
+  BasemapRadioGroup,
+  ProfileRadioGroup,
+  ProjectionRadioGroup,
+} from './radioGroup'
 
 // TOGGLES
 
@@ -40,7 +49,7 @@ export const togglesView = Submodel.defineView<Model, Message>((model, h) => {
       h.Class('flex shrink-0 items-center gap-1'),
     ],
     [
-      ...Array.map(grids, grid => {
+      ...Array.map(gridSwitchesFor(values.profile), grid => {
         const isOn = isGridEnabled(values.grids, grid)
         return Toggle.view(
           {
@@ -83,6 +92,8 @@ export const togglesView = Submodel.defineView<Model, Message>((model, h) => {
 })
 
 // MENU
+
+const profileOptions: ReadonlyArray<ProfileId> = ['Land', 'Maritime', 'Air']
 
 const basemapOptions: ReadonlyArray<MapStyle.Basemap> = [
   'Dark',
@@ -183,6 +194,33 @@ const pillsView =
         ),
       ],
     )
+
+/** Land, Maritime or Air (AGeoP-21 Table B-1): choosing one sets the grids and the column order. */
+const profileSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
+  sectionView(
+    'Profile',
+    [
+      h.submodel({
+        slotId: model.profileRadioGroup.id,
+        model: model.profileRadioGroup,
+        view: ProfileRadioGroup.view,
+        viewInputs: {
+          options: profileOptions,
+          selectedValue: Option.some(model.values.profile),
+          ariaLabel: 'Profile',
+          orientation: 'Horizontal',
+          toView: pillsView('Use', h),
+        },
+        toParentMessage: message =>
+          Message.GotProfileRadioGroupMessage({ message }),
+      }),
+      h.p(
+        [h.Class('text-[11px] text-faint')],
+        [profiles[model.values.profile].description],
+      ),
+    ],
+    h,
+  )
 
 const mapSectionView = (model: Model, h: HtmlBuilder<Message>): Html =>
   sectionView(
@@ -292,7 +330,7 @@ const MENU_ANCHOR: Popover.ViewInputs['anchor'] = {
   padding: 8,
 }
 
-/** The settings button and its menu: base map, projection, precision and range rings. */
+/** The settings button and its menu: profile, base map, projection, precision and range rings. */
 export const menuView = Submodel.defineView<Model, Message>((model, h) =>
   h.submodel({
     slotId: model.menu.id,
@@ -327,6 +365,7 @@ export const menuView = Submodel.defineView<Model, Message>((model, h) =>
                       ),
                     ],
                     [
+                      profileSectionView(model, h),
                       mapSectionView(model, h),
                       precisionSectionView(model, h),
                       ringsSectionView(model, h),

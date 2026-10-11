@@ -14,30 +14,39 @@ const cellLabel: Record<GarsPrecision, string> = {
   5: '5′ keypad',
 }
 
+/** AGeoP-21 (B.7.2e): GARS is for deconfliction and must not define a location. */
+export const AREA_CAUTION = 'an area, not a position'
+
 export const formatter: Formatter = {
   id: 'GARS',
   label: 'GARS',
   maybeGridId: Option.some('Gars'),
   format: (point, { garsPrecision }) =>
-    singleReading(toGars(point, garsPrecision), cellLabel[garsPrecision]),
+    singleReading(
+      toGars(point, garsPrecision),
+      `${cellLabel[garsPrecision]}, area only`,
+    ),
 }
 
-export const parser: Parser = makeParser('GARS', text =>
-  pipe(
-    compact(text),
-    Option.liftPredicate(isGars),
-    Option.map(reference => {
-      const cell = fromGars(reference)
-      return {
-        kind: 'GARS',
-        point: {
-          lat: (cell.south + cell.north) / 2,
-          lon: (cell.west + cell.east) / 2,
-        },
-        maybeBounds: Option.some(cellBox(cell)),
-      }
-    }),
-  ),
+export const parser: Parser = makeParser(
+  'GARS',
+  text =>
+    pipe(
+      compact(text),
+      Option.liftPredicate(isGars),
+      Option.map(reference => {
+        const cell = fromGars(reference)
+        return {
+          kind: 'GARS',
+          point: {
+            lat: (cell.south + cell.north) / 2,
+            lon: (cell.west + cell.east) / 2,
+          },
+          maybeBounds: Option.some(cellBox(cell)),
+        }
+      }),
+    ),
+  Option.some(AREA_CAUTION),
 )
 
 export const grid: Grid = {

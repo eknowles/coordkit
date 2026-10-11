@@ -304,6 +304,7 @@ export class CoordkitMapElement extends HTMLElement {
         ringSpacing: properties.ringSpacing,
         ringUnit: properties.ringUnit,
         basemap: properties.basemap,
+        profile: properties.profile,
       })
       setOverlay(map, frame)
     }

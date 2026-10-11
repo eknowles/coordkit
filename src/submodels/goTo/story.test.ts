@@ -24,7 +24,9 @@ describe('search', () => {
       message(Message.UpdatedQuery({ value: '  51.5, -0.12  ' })),
       message(Message.SubmittedSearch()),
       model(({ status }) =>
-        expect(status).toEqual(Status.Found({ kind: 'DD' })),
+        expect(status).toEqual(
+          Status.Found({ kind: 'DD', maybeCaution: Option.none() }),
+        ),
       ),
       expectOutMessage(
         OutMessage.ChoseLocation({
@@ -43,7 +45,12 @@ describe('search', () => {
       message(Message.UpdatedQuery({ value: '361HN37' })),
       message(Message.SubmittedSearch()),
       model(({ status }) =>
-        expect(status).toEqual(Status.Found({ kind: 'GARS' })),
+        expect(status).toEqual(
+          Status.Found({
+            kind: 'GARS',
+            maybeCaution: Option.some('an area, not a position'),
+          }),
+        ),
       ),
     )
   })
@@ -202,7 +209,7 @@ test('clearStatus forgets the last result', () => {
   expect(
     clearStatus({
       query: 'x',
-      status: Status.Found({ kind: 'DD' }),
+      status: Status.Found({ kind: 'DD', maybeCaution: Option.none() }),
       locateRequestCount: 2,
     }).model,
   ).toEqual({ query: 'x', status: Status.Idle(), locateRequestCount: 2 })

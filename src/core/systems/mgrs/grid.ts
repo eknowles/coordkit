@@ -75,15 +75,94 @@ function traceClipped(
   return runs
 }
 
+/** Full grid lines, or only ticks at the edges of the view and crosses at the intersections. */
+export type MgrsGridStyle = 'Lines' | 'Ticks'
+
+/** Tick length as a fraction of the view height. */
+const TICK_FRACTION = 0.02
+
+/** Cross arm length as a fraction of the grid spacing. */
+const CROSS_FRACTION = 0.06
+
+/** The first `length` of a path from its start, measured in degrees of latitude on the ground. */
+function headOf(path: ReadonlyArray<Position>, length: number): Position[] {
+  const head: Position[] = [path[0]!]
+  let remaining = length
+  for (let i = 1; i < path.length; i++) {
+    const [lonA, latA] = path[i - 1]!
+    const [lonB, latB] = path[i]!
+    const cosLat = Math.cos((((latA + latB) / 2) * Math.PI) / 180)
+    const step = Math.hypot((lonB - lonA) * cosLat, latB - latA)
+    if (step >= remaining) {
+      const k = step === 0 ? 0 : remaining / step
+      head.push([lonA + (lonB - lonA) * k, latA + (latB - latA) * k])
+      return head
+    }
+    head.push([lonB, latB])
+    remaining -= step
+  }
+  return head
+}
+
+/** The digits a grid value shows at the given spacing, as in a square label: 620000 at 1 km is "20". */
+function gridDigits(value: number, spacing: number): string {
+  const digits = Math.round(Math.log10(100_000 / spacing))
+  return String(Math.floor((value % 100_000) / spacing)).padStart(digits, '0')
+}
+
 export function mgrsGrid(
   view: Box,
   zoom: number,
   maxLines = 600,
+  style: MgrsGridStyle = 'Lines',
 ): GridGeometry {
   const spacing = mgrsSpacing(zoom)
   const paths: GridPath[] = []
   const labels: GridLabel[] = []
   if (!spacing) return { paths, labels }
+
+  const [viewW, viewS, viewE, viewN] = view
+  const tickLength = (viewN - viewS) * TICK_FRACTION
+  const edgeTolerance = Math.max(viewE - viewW, viewN - viewS) * 1e-6
+  const isOnEdge = ([lon, lat]: Position): boolean =>
+    Math.abs(lon - viewW) < edgeTolerance ||
+    Math.abs(lon - viewE) < edgeTolerance ||
+    Math.abs(lat - viewS) < edgeTolerance ||
+    Math.abs(lat - viewN) < edgeTolerance
+
+  /**
+   * Add one traced grid line. In tick style only its ends on the view edge remain, and the
+   * south and west ends carry the line's digits, like the margin of a chart.
+   */
+  const emit = (
+    path: Position[],
+    width: number,
+    axis: 'easting' | 'northing',
+    value: number,
+  ) => {
+    if (style === 'Lines') {
+      paths.push({ path, width })
+      return
+    }
+    const ends = [path, [...path].reverse()]
+    for (const end of ends) {
+      const start = end[0]!
+      if (!isOnEdge(start)) continue
+      const tick = headOf(end, tickLength)
+      paths.push({ path: tick, width })
+      const isLabelledEdge =
+        axis === 'easting'
+          ? Math.abs(start[1] - viewS) < edgeTolerance
+          : Math.abs(start[0] - viewW) < edgeTolerance
+      if (isLabelledEdge && spacing < 100_000) {
+        labels.push({
+          position: tick[tick.length - 1]!,
+          text: gridDigits(value, spacing),
+          size: 11,
+        })
+      }
+    }
+  }
 
   let lineCount = 0
   for (const c of GZD_CELLS) {
@@ -128,7 +207,7 @@ export function mgrsGrid(
         steps(nn),
         clip,
       )) {
-        paths.push({ path, width: major ? 1.5 : 0.75 })
+        emit(path, major ? 1.5 : 0.75, 'easting', e)
       }
     }
     for (let n = n0; n <= n1; n += spacing) {
@@ -140,12 +219,45 @@ export function mgrsGrid(
         steps(ne),
         clip,
       )) {
-        paths.push({ path, width: major ? 1.5 : 0.75 })
+        emit(path, major ? 1.5 : 0.75, 'northing', n)
       }
     }
 
-    // Label 100 km squares at their centres, and finer squares with their digits.
-    if (spacing === 100_000 || ne * nn < 1000) {
+    // Tick style marks each grid intersection in view with a small cross.
+    if (style === 'Ticks' && ne * nn < 1000) {
+      const arm = spacing * CROSS_FRACTION
+      for (let e = e0; e <= e1; e += spacing) {
+        for (let n = n0; n <= n1; n += spacing) {
+          if (!inBox(fromUtm(zone, hemi, e, n), clip)) continue
+          for (const [[ea, na], [eb, nb]] of [
+            [
+              [e - arm, n],
+              [e + arm, n],
+            ],
+            [
+              [e, n - arm],
+              [e, n + arm],
+            ],
+          ] as const) {
+            const a = fromUtm(zone, hemi, ea, na)
+            const b = fromUtm(zone, hemi, eb, nb)
+            paths.push({
+              path: [
+                [a.lon, a.lat],
+                [b.lon, b.lat],
+              ],
+              width: 1,
+            })
+          }
+        }
+      }
+    }
+
+    // Label 100 km squares at their centres, and finer squares with their digits. Tick style
+    // labels finer squares on the edges instead.
+    const isSquareLabelled =
+      spacing === 100_000 || (style === 'Lines' && ne * nn < 1000)
+    if (isSquareLabelled) {
       const size = spacing
       for (let e = e0; e < e1; e += size) {
         for (let n = n0; n < n1; n += size) {

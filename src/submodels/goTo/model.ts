@@ -7,7 +7,7 @@ import { defineTaggedUnion } from 'foldkit/schema'
  */
 export const Status = defineTaggedUnion({
   Idle: {},
-  Found: { kind: Schema.String },
+  Found: { kind: Schema.String, maybeCaution: Schema.Option(Schema.String) },
   SearchFailed: { reason: Schema.String },
   Locating: { requestId: Schema.Int },
   LocateFailed: { reason: Schema.String },

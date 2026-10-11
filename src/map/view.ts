@@ -22,6 +22,7 @@ export const view = (model: Model, h: HtmlBuilder<Message>): Html => {
     h.Class('ck-map block h-full w-full'),
     h.Role('region'),
     h.AriaLabel('Map. Click to set the cue, or set it with the search field.'),
+    map.Profile(values.profile),
     map.Basemap(values.basemap),
     map.Projection(values.projection),
     map.GridToggles(values.grids),

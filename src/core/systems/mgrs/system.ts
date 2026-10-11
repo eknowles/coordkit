@@ -39,14 +39,8 @@ export const parser: Parser = makeParser('MGRS', text =>
 /** Outline the square at the chosen precision, down to 100 m; finer squares are too small to see. */
 const MIN_OUTLINE_PRECISION = 3
 
-export const grid: Grid = {
-  id: 'Mgrs',
-  label: 'MGRS',
-  description: 'MGRS grid lines and squares, from zoom 5',
-  colors: { onDark: [76, 139, 245, 130], onLight: [24, 90, 200, 150] },
-  isEnabledByDefault: true,
-  build: mgrsGrid,
-  maybeCueOutline: Option.some((point, { mgrsPrecision }) =>
+const cueSquareOutline: Grid['maybeCueOutline'] = Option.some(
+  (point, { mgrsPrecision }) =>
     pipe(
       mgrsPrecision,
       Option.liftPredicate(precision => precision <= MIN_OUTLINE_PRECISION),
@@ -54,5 +48,34 @@ export const grid: Grid = {
         Option.fromNullishOr(mgrsSquareOutline(toMgrs(point, precision))),
       ),
     ),
-  ),
+)
+
+const MGRS_COLORS: Grid['colors'] = {
+  onDark: [76, 139, 245, 130],
+  onLight: [24, 90, 200, 150],
+}
+
+export const grid: Grid = {
+  id: 'Mgrs',
+  label: 'MGRS',
+  description: 'MGRS grid lines and squares, from zoom 5',
+  colors: MGRS_COLORS,
+  isEnabledByDefault: true,
+  build: mgrsGrid,
+  maybeCueOutline: cueSquareOutline,
+}
+
+/**
+ * MGRS as on a nautical chart (AGeoP-21 B.6.6): ticks on the map edges, labelled with their
+ * grid digits, and small crosses at the grid intersections, so the chart stays readable.
+ */
+export const ticksGrid: Grid = {
+  id: 'MgrsTicks',
+  label: 'MGRS ticks',
+  description:
+    'MGRS as on a nautical chart: ticks on the map edges, labelled with their grid digits, and crosses at the intersections',
+  colors: MGRS_COLORS,
+  isEnabledByDefault: false,
+  build: (view, zoom) => mgrsGrid(view, zoom, undefined, 'Ticks'),
+  maybeCueOutline: cueSquareOutline,
 }

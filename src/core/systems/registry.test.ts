@@ -41,6 +41,14 @@ describe('registry', () => {
     }
   })
 
+  test('only GARS results carry a caution, as GARS names an area', () => {
+    const cautionOf = (text: string) =>
+      Option.flatMap(parseCoordinate(text), result => result.maybeCaution)
+    expect(cautionOf('361HN37')).toEqual(Option.some('an area, not a position'))
+    expect(cautionOf('51.5, -0.12')).toEqual(Option.none())
+    expect(cautionOf('30U XC 99319 10158')).toEqual(Option.none())
+  })
+
   test('every parser rejects empty text', () => {
     for (const parser of parsers) {
       expect(parser.parse('')).toEqual(Option.none())

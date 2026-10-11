@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest'
 
 import { RadioGroup } from '@foldkit/ui'
 
+import { gridTogglesFor } from '../../core/systems/profiles'
 import { Message } from './message'
 import { ValuesJsonString, defaultValues, init } from './model'
 import { SaveSettings, update } from './update'
@@ -101,6 +102,29 @@ describe('settings', () => {
     )
   })
 
+  test('choosing a profile sets every grid toggle to that profile and saves it', () => {
+    story(
+      update,
+      given(init(Option.none())),
+      message(
+        Message.GotProfileRadioGroupMessage({
+          message: RadioGroup.Message.SelectedOption({
+            index: 1,
+            value: 'Maritime',
+          }),
+        }),
+      ),
+      Command.resolveAll(
+        [RadioGroup.FocusOption, RadioGroup.Message.CompletedFocusOption()],
+        [SaveSettings, Message.SucceededSaveSettings()],
+      ),
+      model(({ values }) => {
+        expect(values.profile).toBe('Maritime')
+        expect(values.grids).toEqual(gridTogglesFor('Maritime'))
+      }),
+    )
+  })
+
   test('a failed save keeps the change for this visit', () => {
     story(
       update,
@@ -118,5 +142,14 @@ describe('settings', () => {
     )
     expect(decoded.tileZoom).toBe(12)
     expect(decoded.garsPrecision).toBe(15)
+  })
+
+  test('settings saved before profiles existed load with the Land profile', () => {
+    const { profile: _profile, ...olderValues } = defaultValues
+    const decoded = Schema.decodeSync(ValuesJsonString)(
+      JSON.stringify({ ...olderValues, basemap: 'Dark' }),
+    )
+    expect(decoded.profile).toBe('Land')
+    expect(decoded.basemap).toBe('Dark')
   })
 })

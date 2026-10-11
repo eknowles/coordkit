@@ -17,6 +17,7 @@ const input: OverlayInput = {
   ringSpacing: 'Auto',
   ringUnit: 'NauticalMiles',
   basemap: 'Dark',
+  profile: 'Land',
 }
 
 const linesFrom = (

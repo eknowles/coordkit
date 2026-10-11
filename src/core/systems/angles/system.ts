@@ -59,7 +59,8 @@ export const parser: Parser = makeParser('DD, DMS, DDM', text =>
 export const ddmGrid: Grid = {
   id: DDM_GRID_ID,
   label: 'DDM',
-  description: 'Degrees and minutes, as on a nautical chart',
+  description:
+    'Degrees and minutes, as on a nautical chart; ticks on the map edges mark the minutes between lines',
   colors: { onDark: [240, 90, 200, 140], onLight: [180, 20, 140, 160] },
   isEnabledByDefault: false,
   build: buildDdmGrid,

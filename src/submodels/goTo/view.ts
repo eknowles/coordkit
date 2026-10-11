@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Array, pipe } from 'effect'
+import { Array, Option, pipe } from 'effect'
 import { Submodel } from 'foldkit'
 import type { Html, HtmlBuilder } from 'foldkit/html'
 
@@ -21,7 +21,14 @@ const acceptedFormats = `Accepts ${pipe(
 const statusTextView = (status: Status, h: HtmlBuilder<Message>): Html =>
   Status.match(status, {
     Idle: () => h.empty,
-    Found: ({ kind }) => h.span([h.Class('text-ok')], [`Read as ${kind}`]),
+    Found: ({ kind, maybeCaution }) =>
+      Option.match(maybeCaution, {
+        onNone: () => h.span([h.Class('text-ok')], [`Read as ${kind}`]),
+        onSome: caution => {
+          const text = `${kind}: ${caution}`
+          return h.span([h.Class('text-warn'), h.Title(text)], [text])
+        },
+      }),
     SearchFailed: ({ reason }) => h.span([h.Class('text-danger')], [reason]),
     Locating: () => h.span([h.Class('text-muted')], ['Finding you…']),
     LocateFailed: ({ reason }) => h.span([h.Class('text-danger')], [reason]),

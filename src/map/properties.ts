@@ -9,6 +9,7 @@ import {
 } from '../core/domain'
 import { GarsPrecision } from '../core/systems/gars'
 import { MgrsPrecision } from '../core/systems/mgrs'
+import { ProfileId } from '../core/systems/profiles'
 import { TileZoom } from '../core/systems/tile'
 import * as CameraRequest from './cameraRequest'
 
@@ -17,6 +18,7 @@ import * as CameraRequest from './cameraRequest'
  * Foldkit binding (`CustomElement.define` in view.ts) are both derived from this record.
  */
 export const mapPropertyFields = {
+  profile: ProfileId,
   basemap: MapStyle.Basemap,
   projection: MapStyle.Projection,
   gridToggles: GridToggles.GridToggles,
@@ -52,6 +54,7 @@ export const mapEventFields = {
  * property on the first render, so these only matter for a bare element, as in tests.
  */
 export const initialMapProperties: MapProperties = {
+  profile: 'Land',
   basemap: 'Satellite',
   projection: 'Mercator',
   gridToggles: {},

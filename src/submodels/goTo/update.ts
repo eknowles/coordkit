@@ -22,8 +22,10 @@ const submitSearch = (model: Model): UpdateReturn => {
           Status.SearchFailed({ reason: searchFailureReason(query) }),
       }),
     }),
-    onSome: ({ kind, point, maybeBounds }) => ({
-      model: modifyFields(model, { status: () => Status.Found({ kind }) }),
+    onSome: ({ kind, point, maybeBounds, maybeCaution }) => ({
+      model: modifyFields(model, {
+        status: () => Status.Found({ kind, maybeCaution }),
+      }),
       outMessage: OutMessage.ChoseLocation({ point, maybeBox: maybeBounds }),
     }),
   })

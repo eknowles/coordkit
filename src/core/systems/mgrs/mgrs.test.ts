@@ -64,6 +64,44 @@ describe('MGRS grid', () => {
   })
 })
 
+describe('MGRS grid as ticks', () => {
+  const view = [-0.3, 51.4, 0.1, 51.6] as const
+  const ticks = mgrsGrid(view, 12, undefined, 'Ticks')
+  const lines = mgrsGrid(view, 12)
+  const isOnEdge = ([lon, lat]: readonly [number, number]) =>
+    [view[0], view[2]].some(edge => Math.abs(lon - edge) < 1e-6) ||
+    [view[1], view[3]].some(edge => Math.abs(lat - edge) < 1e-6)
+
+  test('keeps only short ticks from the view edge and crosses at the intersections', () => {
+    const tickLength = (view[3] - view[1]) * 0.02
+    ticks.paths.forEach(({ path }) => {
+      const [start] = path
+      const end = path[path.length - 1]!
+      const length = Math.hypot(
+        (end[0] - start![0]) * Math.cos((51.5 * Math.PI) / 180),
+        end[1] - start![1],
+      )
+      expect(length).toBeLessThan(tickLength * 1.01)
+    })
+    expect(ticks.paths.some(({ path }) => isOnEdge(path[0]!))).toBe(true)
+    expect(ticks.paths.some(({ path }) => !isOnEdge(path[0]!))).toBe(true)
+  })
+
+  test('has a tick at each end of every line that crosses the view', () => {
+    const edgeTicks = ticks.paths.filter(({ path }) => isOnEdge(path[0]!))
+    const crossingEnds = lines.paths.flatMap(({ path }) =>
+      [path[0]!, path[path.length - 1]!].filter(isOnEdge),
+    )
+    expect(edgeTicks).toHaveLength(crossingEnds.length)
+  })
+
+  test('labels the south and west ticks with their kilometre digits', () => {
+    const texts = ticks.labels.map(({ text }) => text)
+    expect(texts.length).toBeGreaterThan(0)
+    texts.forEach(text => expect(text).toMatch(/^\d{2}$/))
+  })
+})
+
 describe('MGRS square outline', () => {
   test('surrounds the point at the requested precision', () => {
     const point = { lat: 51.5073509, lon: -0.1277583 }

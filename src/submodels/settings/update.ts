@@ -7,9 +7,14 @@ import { BrowserKeyValueStore } from '@effect/platform-browser'
 import { Popover, RadioGroup } from '@foldkit/ui'
 
 import { GridToggles, MapStyle } from '../../core/domain'
+import { type ProfileId, gridTogglesFor } from '../../core/systems/profiles'
 import { Message } from './message'
 import { type Model, STORAGE_KEY, Values, ValuesJsonString } from './model'
-import { BasemapRadioGroup, ProjectionRadioGroup } from './radioGroup'
+import {
+  BasemapRadioGroup,
+  ProfileRadioGroup,
+  ProjectionRadioGroup,
+} from './radioGroup'
 
 type UpdateReturn = Update.Return<Model, Message>
 
@@ -38,6 +43,32 @@ const foldMenu = Update.foldChild({
   write: (model, nextMenu) => modifyFields(model, { menu: () => nextMenu }),
   toParentMessage: message => Message.GotMenuMessage({ message }),
   foldOutMessage: foldMenuOutMessage,
+})
+
+/** Choosing a profile also sets every grid toggle to that profile's grids. */
+const foldProfileRadioGroupOutMessage = RadioGroup.OutMessage.match<
+  Step,
+  RadioGroup.OutMessage<ProfileId>
+>({
+  Selected:
+    ({ value }) =>
+    stepModel =>
+      updateValues(
+        stepModel,
+        modifyFields({
+          profile: () => value,
+          grids: () => gridTogglesFor(value),
+        }),
+      ),
+})
+
+const foldProfileRadioGroup = Update.foldChild({
+  update: ProfileRadioGroup.update,
+  read: (model: Model) => Option.some(model.profileRadioGroup),
+  write: (model, nextProfileRadioGroup) =>
+    modifyFields(model, { profileRadioGroup: () => nextProfileRadioGroup }),
+  toParentMessage: message => Message.GotProfileRadioGroupMessage({ message }),
+  foldOutMessage: foldProfileRadioGroupOutMessage,
 })
 
 const foldBasemapRadioGroupOutMessage = RadioGroup.OutMessage.match<
@@ -110,6 +141,9 @@ export const update = (model: Model, message: Message) =>
       updateValues(model, modifyFields({ ringUnit: () => unit })),
 
     GotMenuMessage: ({ message }) => foldMenu(model, message),
+
+    GotProfileRadioGroupMessage: ({ message }) =>
+      foldProfileRadioGroup(model, message),
 
     GotBasemapRadioGroupMessage: ({ message }) =>
       foldBasemapRadioGroup(model, message),

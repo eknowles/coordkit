@@ -20,6 +20,7 @@ export const Message = defineMessageUnion({
   SelectedRingSpacing: { spacing: RangeRings.RingSpacing },
   SelectedRingUnit: { unit: RangeRings.RingUnit },
   GotMenuMessage: { message: Popover.Message },
+  GotProfileRadioGroupMessage: { message: RadioGroup.Message },
   GotBasemapRadioGroupMessage: { message: RadioGroup.Message },
   GotProjectionRadioGroupMessage: { message: RadioGroup.Message },
   SucceededSaveSettings: {},
