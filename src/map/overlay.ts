@@ -1,24 +1,14 @@
 import { Array, Option } from 'effect'
 
-import type { Layer } from '@deck.gl/core'
-import { PathLayer } from '@deck.gl/layers'
-
 import type { GridToggles, MapStyle, RangeRings } from '../domain'
 import type { LatLon } from '../geo/ellipsoid'
-import type {
-  Box,
-  GridGeometry,
-  GridLabel,
-  GridPath,
-  RGBA,
-} from '../geo/geometry'
+import type { Box, GridGeometry } from '../geo/geometry'
 import { grids, isGridEnabled } from '../systems/registry'
 import type { Grid, MapTone, SystemOptions } from '../systems/types'
 import { basemapTone } from './basemaps'
-import { CUE_COLOR, cueLayers } from './cue'
-import { labelHalo } from './labels'
-import { onTop } from './layerDefaults'
-import { buildRings, ringLayer, ringStep } from './rings'
+import { CUE_COLOR, cueCellFeatures, cueMarkerFeatures } from './cue'
+import { LineRank, labelFeature, lineFeature } from './features'
+import { buildRings, ringFeatures, ringStep } from './rings'
 
 export type OverlayInput = Readonly<{
   gridToggles: GridToggles.GridToggles
@@ -34,9 +24,11 @@ export type OverlayInput = Readonly<{
   basemap: MapStyle.Basemap
 }>
 
+/** What the map's overlay layers show: lines, the cue marker, and labels. */
 export type OverlayFrame = Readonly<{
-  layers: ReadonlyArray<Layer>
-  labels: GeoJSON.FeatureCollection
+  lines: GeoJSON.FeatureCollection<GeoJSON.LineString>
+  cueMarker: GeoJSON.FeatureCollection<GeoJSON.Point>
+  labels: GeoJSON.FeatureCollection<GeoJSON.Point>
 }>
 
 /** Below this zoom the whole globe can be in view, so grids cover every longitude. */
@@ -55,41 +47,29 @@ export const gridBox = ([west, south, east, north]: Box, zoom: number): Box => {
 
 type BuiltGrid = Readonly<{ grid: Grid; geometry: GridGeometry }>
 
-const pathLayer = ({ grid, geometry }: BuiltGrid, tone: MapTone): Layer =>
-  new PathLayer<GridPath>({
-    ...onTop,
-    id: `${grid.id}-paths`,
-    data: geometry.paths,
-    getPath: gridPath => gridPath.path,
-    getColor: grid.colors[tone],
-    updateTriggers: { getColor: tone },
-    getWidth: gridPath => gridPath.width,
-    widthUnits: 'pixels',
-    widthMinPixels: 0.5,
-  })
+const MIN_LINE_WIDTH = 0.5
 
-const labelFeature = (
-  label: GridLabel,
-  rank: number,
-  color: RGBA,
+/** Grids later in the registry draw on top, so their lines get the higher rank. */
+const gridLineFeatures = (
+  built: ReadonlyArray<BuiltGrid>,
   tone: MapTone,
-): GeoJSON.Feature => ({
-  type: 'Feature',
-  geometry: { type: 'Point', coordinates: label.position },
-  properties: {
-    text: label.text,
-    size: label.size,
-    rank,
-    color: `rgb(${color.slice(0, 3).join(',')})`,
-    halo: labelHalo[tone],
-  },
-})
+): Array<GeoJSON.Feature<GeoJSON.LineString>> =>
+  Array.flatMap(built, ({ grid, geometry }, index) =>
+    Array.map(geometry.paths, gridPath =>
+      lineFeature(gridPath.path, {
+        layer: grid.id,
+        color: grid.colors[tone],
+        width: Math.max(MIN_LINE_WIDTH, gridPath.width),
+        rank: LineRank.Grid + index,
+      }),
+    ),
+  )
 
 /** Grids later in the registry draw on top, so their labels get the lower sort key and win collisions. */
 const gridLabelFeatures = (
   built: ReadonlyArray<BuiltGrid>,
   tone: MapTone,
-): Array<GeoJSON.Feature> =>
+): Array<GeoJSON.Feature<GeoJSON.Point>> =>
   Array.flatMap(built, ({ grid, geometry }, index) =>
     Array.map(geometry.labels, label =>
       labelFeature(label, built.length - index, grid.colors[tone], tone),
@@ -101,7 +81,7 @@ const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
   Option.match(
     Option.filter(input.maybeCue, () => input.isRangeRingsVisible),
     {
-      onNone: () => ({ layers: [], labels: [] }),
+      onNone: () => ({ lines: [], labels: [] }),
       onSome: cue => {
         const rings = buildRings(
           cue,
@@ -109,7 +89,7 @@ const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
           input.ringUnit,
         )
         return {
-          layers: [ringLayer(rings)],
+          lines: ringFeatures(rings),
           labels: Array.map(rings, ring =>
             labelFeature(ring.label, 0, CUE_COLOR, tone),
           ),
@@ -118,7 +98,7 @@ const ringsAroundCue = (input: OverlayInput, tone: MapTone) =>
     },
   )
 
-/** Turn the enabled grids, the cue and its rings into deck.gl layers and MapLibre label features. */
+/** Turn the enabled grids, the cue and its rings into the GeoJSON the map's overlay layers draw. */
 export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
   const box = gridBox(input.bounds, input.zoom)
   const built = Array.map(
@@ -128,11 +108,23 @@ export const buildOverlayFrame = (input: OverlayInput): OverlayFrame => {
   const tone = basemapTone[input.basemap]
   const rings = ringsAroundCue(input, tone)
   return {
-    layers: [
-      ...Array.map(built, grid => pathLayer(grid, tone)),
-      ...rings.layers,
-      ...cueLayers(input.maybeCue, input.options, input.gridToggles, tone),
-    ],
+    lines: {
+      type: 'FeatureCollection',
+      features: [
+        ...gridLineFeatures(built, tone),
+        ...rings.lines,
+        ...cueCellFeatures(
+          input.maybeCue,
+          input.options,
+          input.gridToggles,
+          tone,
+        ),
+      ],
+    },
+    cueMarker: {
+      type: 'FeatureCollection',
+      features: [...cueMarkerFeatures(input.maybeCue)],
+    },
     labels: {
       type: 'FeatureCollection',
       features: [

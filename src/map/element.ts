@@ -4,13 +4,11 @@ import maplibregl, {
   type MapMouseEvent,
 } from 'maplibre-gl'
 
-import { MapboxOverlay } from '@deck.gl/mapbox'
-
 import { Camera, CameraRequest, type LatLon } from '../domain'
 import { wrapLon } from '../geo/ellipsoid'
 import type { Box } from '../geo/geometry'
 import { basemapStyles } from './basemaps'
-import { ensureLabelLayer, setLabels } from './labels'
+import { ensureOverlayLayers, setOverlay } from './layers'
 import { buildOverlayFrame } from './overlay'
 import {
   type MapProperties,
@@ -27,7 +25,6 @@ const DEFAULT_CAMERA: Camera.Camera = {
   pitch: 0,
 }
 
-const MAP_CURSOR = 'crosshair'
 const FLIGHT_DURATION_MS = 1200
 const FLIGHT_MIN_ZOOM = 12
 const FIT_PADDING = 120
@@ -66,7 +63,7 @@ const requestIdOf = (
 const errorReason = (error: unknown): string =>
   error instanceof Error ? error.message : String(error)
 
-type Host = Readonly<{ map: MapInstance; overlay: MapboxOverlay }>
+type Host = Readonly<{ map: MapInstance }>
 
 type AppliedKey = 'basemap' | 'projection' | 'camera'
 type Applied = { -readonly [K in AppliedKey]?: MapProperties[K] } & {
@@ -74,7 +71,7 @@ type Applied = { -readonly [K in AppliedKey]?: MapProperties[K] } & {
 }
 
 /**
- * `<coordkit-map>`: MapLibre and deck.gl behind a custom element. The view sets its properties
+ * `<coordkit-map>`: MapLibre behind a custom element. The view sets its properties
  * from the Model on every render, and the element redraws to match, so the map is a function of
  * the Model and DevTools time travel moves it too. Map events leave as CustomEvents, which the
  * view turns into Messages (see mapEventFields).
@@ -104,9 +101,7 @@ export class CoordkitMapElement extends HTMLElement {
   disconnectedCallback(): void {
     this.#removeListeners()
     if (Option.isSome(this.#maybeHost)) {
-      const { map, overlay } = this.#maybeHost.value
-      map.removeControl(overlay)
-      map.remove()
+      this.#maybeHost.value.map.remove()
     }
     this.#maybeHost = Option.none()
     this.#isStyleReady = false
@@ -143,26 +138,19 @@ export class CoordkitMapElement extends HTMLElement {
       'top-right',
     )
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'top-right')
-    // NOTE: deck.gl writes its cursor onto the map canvas, over the CSS crosshair in styles.css.
-    const overlay = new MapboxOverlay({
-      interleaved: true,
-      layers: [],
-      getCursor: () => MAP_CURSOR,
-    })
-    map.addControl(overlay)
     // NOTE: the map starts where these properties say, so the first sync must not move it again.
     this.#applied = {
       basemap: properties.basemap,
       camera: properties.camera,
       cameraRequestId: requestIdOf(properties.cameraRequest),
     }
-    return { map, overlay }
+    return { map }
   }
 
   #listen(map: MapInstance): () => void {
     const onStyleLoad = () => {
       this.#isStyleReady = true
-      ensureLabelLayer(map)
+      ensureOverlayLayers(map)
       delete this.#applied.projection
       this.#sync()
     }
@@ -298,7 +286,7 @@ export class CoordkitMapElement extends HTMLElement {
 
   #renderOverlay(): void {
     if (Option.isSome(this.#maybeHost)) {
-      const { map, overlay } = this.#maybeHost.value
+      const { map } = this.#maybeHost.value
       const properties = this.#properties
       const frame = buildOverlayFrame({
         gridToggles: properties.gridToggles,
@@ -316,8 +304,7 @@ export class CoordkitMapElement extends HTMLElement {
         ringUnit: properties.ringUnit,
         basemap: properties.basemap,
       })
-      overlay.setProps({ layers: [...frame.layers] })
-      setLabels(map, frame.labels)
+      setOverlay(map, frame)
     }
   }
 

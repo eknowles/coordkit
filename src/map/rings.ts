@@ -1,14 +1,11 @@
 import { Array, Option } from 'effect'
 
-import type { Layer } from '@deck.gl/core'
-import { PathLayer } from '@deck.gl/layers'
-
 import type { RangeRings } from '../domain'
 import type { LatLon } from '../geo/ellipsoid'
 import { METRES_PER_NAUTICAL_MILE, destination } from '../geo/geodesic'
 import type { Box, GridLabel, Position, RGBA } from '../geo/geometry'
 import { CUE_COLOR } from './cue'
-import { onTop } from './layerDefaults'
+import { LineRank, lineFeature } from './features'
 
 type RingUnit = RangeRings.RingUnit
 
@@ -95,13 +92,16 @@ export const buildRings = (
     }
   })
 
-export const ringLayer = (rings: ReadonlyArray<Ring>): Layer =>
-  new PathLayer<Ring>({
-    ...onTop,
-    id: 'range-rings',
-    data: [...rings],
-    getPath: ring => ring.path,
-    getColor: RING_COLOR,
-    getWidth: 1.25,
-    widthUnits: 'pixels',
-  })
+const RING_WIDTH = 1.25
+
+export const ringFeatures = (
+  rings: ReadonlyArray<Ring>,
+): ReadonlyArray<GeoJSON.Feature<GeoJSON.LineString>> =>
+  Array.map(rings, ring =>
+    lineFeature(ring.path, {
+      layer: 'range-rings',
+      color: RING_COLOR,
+      width: RING_WIDTH,
+      rank: LineRank.Rings,
+    }),
+  )

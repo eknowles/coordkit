@@ -19,6 +19,14 @@ const input: OverlayInput = {
   basemap: 'Dark',
 }
 
+const linesFrom = (
+  frame: ReturnType<typeof buildOverlayFrame>,
+  layer: string,
+) =>
+  frame.lines.features.filter(
+    feature => feature.properties?.['layer'] === layer,
+  )
+
 const firstLabel = (frame: ReturnType<typeof buildOverlayFrame>) =>
   frame.labels.features[0]!.properties!
 
@@ -26,7 +34,7 @@ describe('buildOverlayFrame', () => {
   test('uses the on-dark colours and a dark halo on the Dark base map', () => {
     const label = firstLabel(buildOverlayFrame(input))
     expect(label['color']).toBe(
-      `rgb(${Mgrs.grid.colors.onDark.slice(0, 3).join(',')})`,
+      `rgb(${Mgrs.grid.colors.onDark.slice(0, 3).join(', ')})`,
     )
     expect(label['halo']).toMatch(/^rgba\(17, 17, 19/)
   })
@@ -36,7 +44,7 @@ describe('buildOverlayFrame', () => {
       buildOverlayFrame(modifyFields(input, { basemap: () => 'Light' })),
     )
     expect(label['color']).toBe(
-      `rgb(${Mgrs.grid.colors.onLight.slice(0, 3).join(',')})`,
+      `rgb(${Mgrs.grid.colors.onLight.slice(0, 3).join(', ')})`,
     )
     expect(label['halo']).toMatch(/^rgba\(255, 255, 255/)
   })
@@ -47,7 +55,8 @@ describe('buildOverlayFrame', () => {
         maybeCue: () => Option.some({ lat: 51.5, lon: 0 }),
       }),
     )
-    expect(frame.layers.map(layer => layer.id)).not.toContain('range-rings')
+    expect(linesFrom(frame, 'range-rings')).toEqual([])
+    expect(frame.cueMarker.features).toHaveLength(1)
   })
 
   test('draws ring labels around the cue even with grid labels off', () => {
@@ -77,9 +86,7 @@ describe('buildOverlayFrame', () => {
           maybeCue: () => Option.some({ lat: 51.5, lon: 0 }),
         }),
       )
-      const data = frame.layers.find(layer => layer.id === 'cue-cells')?.props
-        .data
-      return Array.isArray(data) ? data.length : 0
+      return linesFrom(frame, 'cue-cells').length
     }
     const allOff = Object.fromEntries(grids.map(grid => [grid.id, false]))
     expect(cueCellCount(allOff)).toBe(0)
@@ -87,5 +94,26 @@ describe('buildOverlayFrame', () => {
     expect(
       cueCellCount({ ...allOff, Gars: true, Georef: true, PlusCode: true }),
     ).toBe(3)
+  })
+
+  test('draws grids under the rings, and the cue cells on top', () => {
+    const frame = buildOverlayFrame(
+      modifyFields(input, {
+        maybeCue: () => Option.some({ lat: 51.5, lon: 0 }),
+        isRangeRingsVisible: () => true,
+        gridToggles: () => ({ ...input.gridToggles, Gars: true }),
+      }),
+    )
+    const rankOf = (layer: string) =>
+      Math.max(
+        ...linesFrom(frame, layer).map(feature =>
+          Number(feature.properties?.['rank']),
+        ),
+      )
+    expect(rankOf('Mgrs')).toBeLessThan(rankOf('range-rings'))
+    expect(rankOf('range-rings')).toBeLessThan(rankOf('cue-cells'))
+    expect(linesFrom(frame, 'Mgrs')[0]!.properties?.['color']).toMatch(
+      /^rgba\(/,
+    )
   })
 })

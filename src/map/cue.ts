@@ -1,84 +1,59 @@
 import { Array, Option } from 'effect'
 
-import type { Layer } from '@deck.gl/core'
-import { PathLayer, ScatterplotLayer } from '@deck.gl/layers'
-
 import type { GridToggles } from '../domain'
 import type { LatLon } from '../geo/ellipsoid'
-import type { Position, RGBA } from '../geo/geometry'
+import type { RGBA } from '../geo/geometry'
 import { grids, isGridEnabled } from '../systems/registry'
 import type { MapTone, SystemOptions } from '../systems/types'
-import { onTop } from './layerDefaults'
+import { LineRank, lineFeature } from './features'
 
 export const CUE_COLOR: RGBA = [245, 166, 35, 255]
 
-type Outline = Readonly<{ path: ReadonlyArray<Position>; color: RGBA }>
+const CUE_CELL_WIDTH = 2.5
 
-const opaque = ([r, g, b]: RGBA): RGBA => [r, g, b, 255]
+const opaque = ([red, green, blue]: RGBA): RGBA => [red, green, blue, 255]
 
-/** The cell around the cue in each grid that is switched on. */
-const outlinesAround = (
-  cue: LatLon,
-  options: SystemOptions,
-  gridToggles: GridToggles.GridToggles,
-  tone: MapTone,
-): ReadonlyArray<Outline> =>
-  Array.getSomes(
-    Array.map(
-      Array.filter(grids, grid => isGridEnabled(gridToggles, grid)),
-      grid =>
-        Option.map(
-          Option.flatMap(grid.maybeCueOutline, outline =>
-            outline(cue, options),
-          ),
-          path => ({
-            path,
-            color: opaque(grid.colors[tone]),
-          }),
-        ),
-    ),
-  )
-
-/** The cue marker and the outlines of the cells that contain it. */
-export const cueLayers = (
+/** The outline of the cell around the cue in each grid that is switched on. */
+export const cueCellFeatures = (
   maybeCue: Option.Option<LatLon>,
   options: SystemOptions,
   gridToggles: GridToggles.GridToggles,
   tone: MapTone,
-): ReadonlyArray<Layer> =>
+): ReadonlyArray<GeoJSON.Feature<GeoJSON.LineString>> =>
   Option.match(maybeCue, {
     onNone: () => [],
-    onSome: cue => [
-      new PathLayer<Outline>({
-        ...onTop,
-        id: 'cue-cells',
-        data: outlinesAround(cue, options, gridToggles, tone),
-        getPath: outline => Array.copy(outline.path),
-        getColor: outline => outline.color,
-        getWidth: 2.5,
-        widthUnits: 'pixels',
-      }),
-      new ScatterplotLayer<LatLon>({
-        ...onTop,
-        id: 'cue-ring',
-        data: [cue],
-        getPosition: point => [point.lon, point.lat],
-        getRadius: 7,
-        radiusUnits: 'pixels',
-        filled: false,
-        stroked: true,
-        getLineColor: CUE_COLOR,
-        getLineWidth: 3,
-        lineWidthUnits: 'pixels',
-      }),
-      new ScatterplotLayer<LatLon>({
-        ...onTop,
-        id: 'cue-centre',
-        data: [cue],
-        getPosition: point => [point.lon, point.lat],
-        getRadius: 2,
-        radiusUnits: 'pixels',
-        getFillColor: CUE_COLOR,
-      }),
+    onSome: cue =>
+      Array.getSomes(
+        Array.map(
+          Array.filter(grids, grid => isGridEnabled(gridToggles, grid)),
+          grid =>
+            Option.map(
+              Option.flatMap(grid.maybeCueOutline, outline =>
+                outline(cue, options),
+              ),
+              path =>
+                lineFeature(path, {
+                  layer: 'cue-cells',
+                  color: opaque(grid.colors[tone]),
+                  width: CUE_CELL_WIDTH,
+                  rank: LineRank.CueCells,
+                }),
+            ),
+        ),
+      ),
+  })
+
+/** The cue as a point, for the marker's circle layers. */
+export const cueMarkerFeatures = (
+  maybeCue: Option.Option<LatLon>,
+): ReadonlyArray<GeoJSON.Feature<GeoJSON.Point>> =>
+  Option.match(maybeCue, {
+    onNone: () => [],
+    onSome: ({ lat, lon }) => [
+      {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lon, lat] },
+        properties: {},
+      },
     ],
   })

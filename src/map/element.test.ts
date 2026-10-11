@@ -15,11 +15,13 @@ const fake = vi.hoisted(() => {
     flyTo: vi.fn(),
     fitBounds: vi.fn(),
     remove: vi.fn(),
-    setProps: vi.fn(),
-    overlayCreated: vi.fn(),
+    setData: vi.fn(),
+    isStyleLoaded: false,
   }
+  const sources = new Map<string, unknown>()
   return {
     handlers,
+    sources,
     state,
     map,
     emit: (name: string, event?: unknown) => handlers.get(name)?.(event),
@@ -83,11 +85,16 @@ vi.mock('maplibre-gl', () => {
     jumpTo(...args: Array<unknown>) {
       fake.map.jumpTo(...args)
     }
-    getSource() {
-      return undefined
+    getSource(id: string) {
+      return fake.sources.get(id)
     }
-    addSource() {
-      throw new Error('Style is not done loading')
+    addSource(id: string) {
+      if (!fake.map.isStyleLoaded) {
+        throw new Error('Style is not done loading')
+      }
+      fake.sources.set(id, {
+        setData: (data: unknown) => fake.map.setData(id, data),
+      })
     }
     addLayer() {}
   }
@@ -99,17 +106,6 @@ vi.mock('maplibre-gl', () => {
   }
   return { ...module, default: module }
 })
-
-vi.mock('@deck.gl/mapbox', () => ({
-  MapboxOverlay: class {
-    constructor(props: unknown) {
-      fake.map.overlayCreated(props)
-    }
-    setProps(props: unknown) {
-      fake.map.setProps(props)
-    }
-  },
-}))
 
 const { CoordkitMapElement, MAP_TAG, defineMapElement } =
   await import('./element')
@@ -132,10 +128,16 @@ const LONDON_CAMERA = {
 
 const flush = () => new Promise<void>(resolve => queueMicrotask(resolve))
 
-const layerIds = (): Array<string> =>
-  fake.map.setProps.mock.lastCall![0].layers.map(
-    (layer: { id: string }) => layer.id,
+/** The `layer` property of each line feature the element last drew. */
+const lineLayers = (): Array<string> => {
+  const lineCalls = fake.map.setData.mock.calls.filter(
+    ([id]) => id === 'overlay-lines',
   )
+  const [, data] = lineCalls.at(-1)!
+  return data.features.map(
+    (feature: { properties: { layer: string } }) => feature.properties.layer,
+  )
+}
 
 /** Make an element, let the test set its first properties, then put it on the page. */
 const mountElement = (
@@ -164,6 +166,8 @@ beforeEach(() => {
   fake.state.zoom = 1.6
   fake.state.bearing = 0
   fake.state.pitch = 0
+  fake.map.isStyleLoaded = false
+  fake.sources.clear()
   vi.clearAllMocks()
 })
 
@@ -212,14 +216,6 @@ describe('<coordkit-map>', () => {
     expect(events.at(-1)).toEqual({ name: 'map-ready', detail: {} })
   })
 
-  test('keeps the crosshair cursor that deck.gl would replace with a grab hand', () => {
-    mountElement()
-    const props = fake.map.overlayCreated.mock.lastCall![0]
-    expect(props.getCursor({ isDragging: true, isHovering: false })).toBe(
-      'crosshair',
-    )
-  })
-
   test('starts at the whole world without a camera', () => {
     mountElement()
     expect(fake.map.created).toHaveBeenCalledWith(
@@ -234,13 +230,15 @@ describe('<coordkit-map>', () => {
     expect(Reflect.get(element, 'gridToggles')).toEqual(
       expect.objectContaining({ Gars: true }),
     )
+    fake.map.isStyleLoaded = true
+    fake.emit('style.load')
     await flush()
-    expect(layerIds()).toEqual(
-      expect.arrayContaining(['Gars-paths', 'range-rings', 'cue-ring']),
+    expect(lineLayers()).toEqual(
+      expect.arrayContaining(['Graticule', 'range-rings', 'cue-cells']),
     )
     Reflect.set(element, 'isRangeRingsVisible', false)
     await flush()
-    expect(layerIds()).not.toContain('range-rings')
+    expect(lineLayers()).not.toContain('range-rings')
   })
 
   test('swaps the whole style for a new base map and applies the projection once the style loads', async () => {

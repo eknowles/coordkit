@@ -57,7 +57,8 @@ export default defineConfig({
       workbox: {
         // Precache the app shell and the Latin font files; other scripts load on demand below.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}', '**/*latin*.woff2'],
-        // NOTE: MapLibre and deck.gl make a JavaScript chunk of about 2 MB, over Workbox's default limit.
+        // NOTE: MapLibre makes a JavaScript chunk of about 1.5 MB. Workbox skips files over its 2 MB
+        // default without an error, so raise the limit to keep the app precached as it grows.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
         // NOTE: the coverage report and badges are published beside the app; let them load as pages.
@@ -96,8 +97,8 @@ export default defineConfig({
     }),
   ],
   build: {
-    // NOTE: MapLibre and deck.gl make one large chunk; the whole app needs both at start.
-    chunkSizeWarningLimit: 2500,
+    // NOTE: MapLibre makes one chunk of about 1.5 MB; the whole app needs it at start.
+    chunkSizeWarningLimit: 1600,
   },
   optimizeDeps: {
     entries: ['src/entry.ts'],
